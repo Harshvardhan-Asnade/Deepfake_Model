@@ -1,0 +1,123 @@
+/* ==================== PREMIUM ANIMATIONS ==================== */
+
+/* SMOOTH FADE IN UP */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 40px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.animate-fade-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+    /* Init hidden */
+}
+
+/* STAGGER DELAYS (utility classes) */
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}
+
+.delay-400 {
+    animation-delay: 0.4s;
+}
+
+.delay-500 {
+    animation-delay: 0.5s;
+}
+
+/* PULSING GLOW (for upload area) */
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(227, 245, 20, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 30px 0 rgba(227, 245, 20, 0.2);
+        border-color: rgba(227, 245, 20, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(227, 245, 20, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulseGlow 3s infinite;
+}
+
+/* SHIMMER BORDER (for premium feel) */
+@keyframes borderShimmer {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+/* FLOATING ELEMENT */
+@keyframes floatY {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-float {
+    animation: floatY 6s ease-in-out infinite;
+}
+
+/* SCANNER LINE (for analysis) */
+@keyframes scanLine {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+.scanner-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-yellow);
+    box-shadow: 0 0 10px var(--accent-yellow);
+    animation: scanLine 2s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+}

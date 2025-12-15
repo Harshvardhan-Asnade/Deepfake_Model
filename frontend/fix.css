@@ -1,0 +1,7 @@
+.verdict-fake {
+    background: rgba(227, 245, 20, 0.1);
+    /* Transparent yellow */
+    color: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+    box-shadow: 0 0 40px rgba(227, 245, 20, 0.1);
+}

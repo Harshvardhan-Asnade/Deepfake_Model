@@ -14,8 +14,13 @@ from PIL import Image
 ssl._create_default_https_context = ssl._create_unverified_context
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+from albumentations.pytorch import ToTensorV2
 from src.models import DeepfakeDetector
 from src.config import Config
+import database
+
+# Initialize Database
+database.init_db()
 
 try:
     from safetensors.torch import load_file
@@ -186,10 +191,32 @@ def predict():
         if error:
             return jsonify({'error': error}), 500
         
+        # Save to Database
+        database.add_scan(
+            filename=filename,
+            prediction=result['prediction'],
+            confidence=result['confidence'],
+            fake_prob=result['fake_probability'],
+            real_prob=result['real_probability']
+        )
+        
         return jsonify(result)
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    """Get all past scans"""
+    history = database.get_history()
+    return jsonify(history)
+
+@app.route('/api/history', methods=['DELETE'])
+def clear_history():
+    """Clear all history"""
+    if database.clear_history():
+        return jsonify({'message': 'History cleared'})
+    return jsonify({'error': 'Failed to clear history'}), 500
 
 @app.route('/api/model-info', methods=['GET'])
 def model_info():

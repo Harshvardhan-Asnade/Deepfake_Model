@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan History - DeepGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="history.css">
+    <link rel="stylesheet" href="animations.css">
+</head>
+
+<body class="analysis-page">
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    <img src="logo.png" alt="DeepGuard Logo" class="logo-img">
+                    <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
+                </a>
+                <ul class="nav-menu" style="margin-left: auto; padding-right: 40px;">
+                    <li><a href="analysis.html">Analysis</a></li>
+                    <li><a href="history.html" class="active">History</a></li>
+                </ul>
+                <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="analysis-container">
+        <div class="container" style="max-width: 1000px; padding-top: 40px;">
+            <div class="section-header">
+                <h2 class="section-title">Scan <span class="gradient-text">History</span></h2>
+                <p class="section-subtitle">View your past detection results</p>
+            </div>
+
+            <div class="history-grid" id="historyList">
+                <!-- History Items will be injected here -->
+                <div class="empty-state" id="historyEmptyState" style="grid-column: 1 / -1;">
+                    <div class="empty-icon">📂</div>
+                    <h3>No History Found</h3>
+                    <p>Your recent analysis results will appear here.</p>
+                    <a href="analysis.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Start
+                        New Analysis</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Simple script to handle active state or mock history if we wanted to
+        document.addEventListener('DOMContentLoaded', () => {
+            // We can add mock history here later if requested
+        });
+    </script>
+</body>
+
+</html>

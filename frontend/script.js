@@ -233,7 +233,8 @@ window.addEventListener('scroll', () => {
         navbar.style.background = 'rgba(10, 10, 15, 0.95)';
         navbar.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.3)';
     } else {
-        navbar.style.background = 'rgba(10, 10, 15, 0.8)';
+        navbar.style.background = 'transparent';
+        navbar.style.backdropFilter = 'none';
         navbar.style.boxShadow = 'none';
     }
 
@@ -397,8 +398,48 @@ function updateAnalysisUI(result) {
     confidenceValue.textContent = `${confidence}% Confidence`;
 
     // Update Metrics
-    fakeProb.textContent = `${(result.fake_probability * 100).toFixed(1)}%`;
-    realProb.textContent = `${(result.real_probability * 100).toFixed(1)}%`;
+    // fakeProb.textContent = `${(result.fake_probability * 100).toFixed(1)}%`;
+    // realProb.textContent = `${(result.real_probability * 100).toFixed(1)}%`;
+
+    // Update Chart
+    const ctx = document.getElementById('probabilityChart').getContext('2d');
+
+    // Destroy previous chart if exists
+    if (window.probChartInstance) {
+        window.probChartInstance.destroy();
+    }
+
+    const fakeP = result.fake_probability * 100;
+    const realP = result.real_probability * 100;
+
+    window.probChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Fake', 'Real'],
+            datasets: [{
+                data: [fakeP, realP],
+                backgroundColor: [
+                    'rgba(227, 245, 20, 0.9)', // Fake (Electric Yellow)
+                    'rgba(255, 255, 255, 0.1)'  // Real (White transparent)
+                ],
+                borderColor: [
+                    'rgba(227, 245, 20, 1)',
+                    'rgba(255, 255, 255, 0.2)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: '#fff' }
+                }
+            }
+        }
+    });
 
     // Update Text
     if (isFake) {
@@ -428,19 +469,21 @@ function resetAnalysis() {
 }
 
 // CTA button handlers
-document.querySelectorAll('.btn-hero-primary, .btn-cta-primary').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
-    });
-});
+// CTA button handlers
+// document.querySelectorAll('.btn-hero-primary, .btn-cta-primary').forEach(btn => {
+//     btn.addEventListener('click', () => {
+//         document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+//     });
+// });
 
 // Watch demo button
-document.querySelectorAll('.btn-hero-secondary').forEach(btn => {
-    btn.addEventListener('click', () => {
-        alert('Demo video coming soon! For now, try our live detection below.');
-        document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
-    });
-});
+// Watch demo button
+// document.querySelectorAll('.btn-hero-secondary').forEach(btn => {
+//     btn.addEventListener('click', () => {
+//         alert('Demo video coming soon! For now, try our live detection below.');
+//         document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+//     });
+// });
 
 // ==================== 3D FLOATING EFFECTS ====================
 document.addEventListener('mousemove', (e) => {
@@ -487,13 +530,14 @@ document.querySelectorAll('.stat-value').forEach((stat, index) => {
 });
 
 // Get Started button functionality
-document.querySelectorAll('.btn-primary').forEach(btn => {
-    if (btn.textContent === 'Get Started') {
-        btn.addEventListener('click', () => {
-            window.location.href = '#demo';
-        });
-    }
-});
+// Get Started button functionality
+// document.querySelectorAll('.btn-primary').forEach(btn => {
+//     if (btn.textContent === 'Get Started') {
+//         btn.addEventListener('click', () => {
+//             window.location.href = '#demo';
+//         });
+//     }
+// });
 
 // Loading animation for stats counter
 function animateValue(element, start, end, duration) {
@@ -575,12 +619,87 @@ async function generatePDFReport() {
         // Add Footer
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
-        doc.text("DeepGuard System v2.0 - Automated AI Analysis", 105, 290, { align: "center" });
-
-        doc.save('DeepGuard_Forensic_Report.pdf');
 
     } catch (err) {
         console.error("PDF Generation Failed:", err);
         alert("Could not generate report. Please try again.");
     }
+}
+
+// ==================== HISTORY LOGIC ====================
+async function loadHistory() {
+    const historyList = document.getElementById('historyList');
+    const emptyState = document.getElementById('historyEmptyState');
+
+    if (!historyList) return;
+
+    try {
+        const response = await fetch('/api/history');
+        const history = await response.json();
+
+        if (history.length > 0) {
+            emptyState.style.display = 'none';
+            historyList.innerHTML = '';
+
+            history.forEach((item, index) => {
+                const isFake = item.prediction === 'FAKE';
+                const date = new Date(item.timestamp).toLocaleString();
+
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <div class="history-card-header">
+                        <div class="history-badge ${isFake ? 'badge-fake' : 'badge-real'}">
+                            ${isFake ? '⚠ FAKE' : '✓ REAL'}
+                        </div>
+                        <span class="history-date">${date}</span>
+                    </div>
+                    <div class="history-card-body">
+                        <h4>${item.filename}</h4>
+                        <div class="history-prob">
+                            <span>Confidence: ${(item.confidence * 100).toFixed(1)}%</span>
+                            <div class="mini-bar">
+                                <div class="mini-fill" style="width: ${item.confidence * 100}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                historyList.appendChild(card);
+            });
+
+            // Add Clear Button if not exists
+            if (!document.getElementById('clearHistoryBtn')) {
+                const clearBtn = document.createElement('button');
+                clearBtn.id = 'clearHistoryBtn';
+                clearBtn.className = 'btn-delete-history';
+                clearBtn.innerHTML = '🗑 Clear All History';
+                clearBtn.innerHTML = '🗑 Clear All History';
+                clearBtn.addEventListener('click', clearHistory);
+                historyList.parentElement.appendChild(clearBtn);
+            }
+
+        } else {
+            emptyState.style.display = 'flex';
+            historyList.innerHTML = '';
+        }
+    } catch (err) {
+        console.error('Failed to load history:', err);
+    }
+}
+
+async function clearHistory() {
+    if (!confirm('Are you sure you want to clear all history?')) return;
+
+    try {
+        await fetch('/api/history', { method: 'DELETE' });
+        loadHistory(); // Reload UI
+    } catch (err) {
+        console.error('Failed to clear history:', err);
+    }
+}
+
+// Auto-load history on history.html
+if (window.location.pathname.includes('history.html')) {
+    window.addEventListener('load', loadHistory);
 }

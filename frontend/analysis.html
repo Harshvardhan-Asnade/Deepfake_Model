@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Dashboard - Modern Detections</title>
+    <title>Analysis Dashboard - DeepGuard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="animations.css">
 </head>
 
 <body class="analysis-page">
@@ -22,9 +23,13 @@
         <div class="container">
             <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <div class="logo-icon"></div>
-                    <span class="logo-text">Modern<span class="gradient-text">Detections</span></span>
+                    <img src="logo.png" alt="DeepGuard Logo" class="logo-img">
+                    <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
+                <ul class="nav-menu" style="margin-left: auto; padding-right: 40px;">
+                    <li><a href="analysis.html" class="active">Analysis</a></li>
+                    <li><a href="history.html">History</a></li>
+                </ul>
                 <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
             </div>
         </div>
@@ -39,8 +44,8 @@
                     <p>Upload image for AI analysis</p>
                 </div>
 
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
+                <div class="upload-area animate-pulse-glow" id="uploadArea">
+                    <div class="upload-icon animate-float">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -53,6 +58,8 @@
                     <input type="file" id="fileInput" accept="image/*" hidden>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Select
                         File</button>
+                    <!-- Scanner Line Effect -->
+                    <div class="scanner-line"></div>
                 </div>
 
                 <div class="preview-area" id="previewArea" style="display: none;">
@@ -92,39 +99,40 @@
                         </div>
                     </div>
 
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <span class="metric-label">Fake Probability</span>
-                            <span class="metric-value" id="fakeProb">--%</span>
-                        </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Real Probability</span>
-                            <span class="metric-value" id="realProb">--%</span>
-                        </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Scan Time</span>
-                            <span class="metric-value">0.42s</span>
-                        </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Model Version</span>
-                            <span class="metric-value">SigLIP v2</span>
-                        </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <!-- Chart Container -->
+                    <div class="metric-card"
+                        style="grid-column: span 2; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                        <canvas id="probabilityChart" style="max-height: 150px;"></canvas>
                     </div>
 
-                    <div class="analysis-details">
-                        <h4>Forensic Analysis</h4>
-                        <p id="analysisText">Waiting for analysis...</p>
-
-                        <button class="btn-primary" id="downloadReportBtn"
-                            style="margin-top: 20px; width: 100%; display: none;" onclick="generatePDFReport()">
-                            📄 Download Forensic Report
-                        </button>
+                    <div class="metric-card">
+                        <span class="metric-label">Scan Time</span>
+                        <span class="metric-value">0.42s</span>
                     </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Model Version</span>
+                        <span class="metric-value">SigLIP v2</span>
+                    </div>
+                </div>
+
+                <div class="analysis-details">
+                    <h4>Forensic Analysis</h4>
+                    <p id="analysisText">Waiting for analysis...</p>
+
+                    <button class="btn-primary" id="downloadReportBtn"
+                        style="margin-top: 20px; width: 100%; display: none;" onclick="generatePDFReport()">
+                        📄 Download Forensic Report
+                    </button>
                 </div>
             </div>
         </div>
+        </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
