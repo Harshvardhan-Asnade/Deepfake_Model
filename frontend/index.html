@@ -13,6 +13,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="showcase.css">
 </head>
 
 <body>
@@ -201,22 +202,25 @@
                 <p class="section-subtitle">See our AI in action - real vs. fake detection examples</p>
             </div>
 
+
             <!-- Comparison Slider -->
             <div class="comparison-container">
                 <div class="comparison-header">
-                    <h3>Deepfake <span style="color: var(--accent-yellow)">vs</span> Real</h3>
-                    <p>Drag the slider to reveal the manipulation mask</p>
+                    <h3>Detection <span style="color: var(--accent-yellow)">Comparison</span></h3>
+                    <p>Visual demonstration of deepfake detection analysis</p>
                 </div>
-                <div class="img-comp-container">
-                    <div class="img-comp-img">
-                        <img src="https://assets.codepen.io/2585/Faker.jpg" width="800" height="450">
+                <div class="img-comp-container"
+                    style="height: 450px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
+                        <h3 style="color: var(--accent-yellow); margin-bottom: 10px;">Try Live Detection</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Upload your own images to see our
+                            AI detection in action</p>
+                        <a href="analysis.html" class="btn-primary">Start Analysis</a>
                     </div>
-                    <div class="img-comp-img img-comp-overlay">
-                        <img src="https://assets.codepen.io/2585/Real.jpg" width="800" height="450">
-                    </div>
-                    <div class="slider-handle">↔</div>
                 </div>
             </div>
+
 
             <div class="showcase-grid">
                 <div class="showcase-item">

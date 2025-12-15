@@ -405,10 +405,23 @@ function updateAnalysisUI(result) {
     // Play Result Sound
     playSound(isFake ? 'alert' : 'success');
 
-    // Update Meter
+    // Update Meter with dynamic colors
     setTimeout(() => {
         confidenceBar.style.width = `${confidence}%`;
-        confidenceBar.style.background = isFake ? 'var(--accent-yellow)' : '#ffffff';
+
+        // Remove all confidence classes
+        confidenceBar.classList.remove('confidence-low', 'confidence-medium', 'confidence-high', 'confidence-very-high');
+
+        // Add appropriate class based on confidence level
+        if (confidence < 60) {
+            confidenceBar.classList.add('confidence-low');
+        } else if (confidence < 75) {
+            confidenceBar.classList.add('confidence-medium');
+        } else if (confidence < 90) {
+            confidenceBar.classList.add('confidence-high');
+        } else {
+            confidenceBar.classList.add('confidence-very-high');
+        }
     }, 100);
     confidenceValue.textContent = `${confidence}% Confidence`;
 

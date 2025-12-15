@@ -891,9 +891,9 @@ body {
 }
 
 .badge-real {
-    background: rgba(67, 233, 123, 0.3);
-    border: 1px solid rgba(67, 233, 123, 0.5);
-    color: #43e97b;
+    background: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+    color: #000;
 }
 
 .badge-fake {
