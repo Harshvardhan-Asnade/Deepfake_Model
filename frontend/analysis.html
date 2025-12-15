@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Dashboard - Modern Detections</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="analysis-page">
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon"></div>
+                    <span class="logo-text">Modern<span class="gradient-text">Detections</span></span>
+                </a>
+                <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="analysis-container">
+        <div class="analysis-grid">
+            <!-- Left Side: Upload & Preview -->
+            <div class="upload-section">
+                <div class="section-header-small">
+                    <h2>Media Input</h2>
+                    <p>Upload image for AI analysis</p>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3 class="upload-title">Drop Image Here</h3>
+                    <p class="upload-description">Supports JPG, PNG, WEBP</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Select
+                        File</button>
+                </div>
+
+                <div class="preview-area" id="previewArea" style="display: none;">
+                    <img id="previewImage" src="" alt="Preview">
+                    <img id="heatmapOverlay" src="" alt="Heatmap"
+                        style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.5s ease;">
+
+                    <div class="heatmap-toggle-container" id="heatmapToggle" style="display: none;">
+                        <span class="toggle-label">Heatmap</span>
+                        <label class="switch">
+                            <input type="checkbox" id="heatmapSwitch">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button class="btn-close-preview" onclick="resetAnalysis()">×</button>
+                </div>
+            </div>
+
+            <!-- Right Side: Results & Metrics -->
+            <div class="results-section" id="resultsSection">
+                <div class="empty-state">
+                    <div class="empty-icon">⚡</div>
+                    <h3>Ready to Analyze</h3>
+                    <p>Upload media to start the DeepGuard detection pipeline</p>
+                </div>
+
+                <div class="analysis-results" style="display: none;">
+                    <div class="verdict-card" id="verdictCard">
+                        <span class="verdict-label">DETECTION RESULT</span>
+                        <h1 class="verdict-title" id="verdictTitle">--</h1>
+                        <div class="confidence-meter">
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="confidenceBar"></div>
+                            </div>
+                            <span class="meter-value" id="confidenceValue">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Fake Probability</span>
+                            <span class="metric-value" id="fakeProb">--%</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Real Probability</span>
+                            <span class="metric-value" id="realProb">--%</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Scan Time</span>
+                            <span class="metric-value">0.42s</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Model Version</span>
+                            <span class="metric-value">SigLIP v2</span>
+                        </div>
+                    </div>
+
+                    <div class="analysis-details">
+                        <h4>Forensic Analysis</h4>
+                        <p id="analysisText">Waiting for analysis...</p>
+
+                        <button class="btn-primary" id="downloadReportBtn"
+                            style="margin-top: 20px; width: 100%; display: none;" onclick="generatePDFReport()">
+                            📄 Download Forensic Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

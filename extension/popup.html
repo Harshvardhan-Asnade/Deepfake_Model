@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepGuard - Deepfake Detector</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="icons/icon48.png" alt="DeepGuard">
+                <div>
+                    <h1>DeepGuard</h1>
+                    <p class="tagline">Deepfake Detector</p>
+                </div>
+            </div>
+            <div class="status-indicator" id="apiStatus">
+                <span class="status-dot"></span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Compact Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-zone-compact" id="uploadZone">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <div class="upload-text">
+                        <strong>Drop image here</strong>
+                        <span>or click to select</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="skeleton-wrapper">
+                    <div class="skeleton-image"></div>
+                    <div class="skeleton-details">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+                <p class="loading-text">Analyzing your image...</p>
+            </div>
+
+            <!-- Results Section with Image -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="result-image-container">
+                    <img id="resultImage" alt="Analyzed image">
+                    <div class="result-overlay">
+                        <div class="result-badge" id="resultBadge">
+                            <span class="result-label" id="resultLabel">REAL</span>
+                            <span class="result-confidence" id="resultConfidence">95.2%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-details-compact">
+                    <div class="detail-row">
+                        <span class="label">Status:</span>
+                        <span class="value" id="statusValue">Real Image</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Confidence:</span>
+                        <span class="value" id="confidenceDetail">95.2%</span>
+                    </div>
+                    <button class="btn-new-check" id="newCheckBtn">New Check</button>
+                </div>
+            </section>
+
+            <!-- Quick History -->
+            <section class="history-compact" id="historyCompact">
+                <div class="history-header">
+                    <span>Recent</span>
+                    <button class="btn-clear" id="clearHistoryBtn">Clear</button>
+                </div>
+                <div class="history-grid" id="historyGrid">
+                    <div class="empty-history">No recent checks</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer Tip -->
+        <footer>
+            <p>💡 Right-click any image → "Check for Deepfake"</p>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
