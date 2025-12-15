@@ -61,38 +61,49 @@ def load_model():
     global model, transform
     
     checkpoint_dir = Config.CHECKPOINT_DIR
-    checkpoint_path = None
-    
-    # Try to find a checkpoint
-    if os.path.exists(checkpoint_dir):
-        import glob
-        safetensors_files = glob.glob(os.path.join(checkpoint_dir, "*.safetensors"))
-        pth_files = glob.glob(os.path.join(checkpoint_dir, "*.pth"))
-        
-        if safetensors_files:
-            checkpoint_path = safetensors_files[0]
-        elif pth_files:
-            checkpoint_path = pth_files[0]
+    # Explicitly target the model requested by the user
+    target_model_name = "best_finetuned_datasetB.safetensors"
+    checkpoint_path = os.path.join(checkpoint_dir, target_model_name)
     
     print(f"Using device: {device}")
-    model = DeepfakeDetector(pretrained=False)
+    
+    # Initialize with pretrained=True to ensure missing keys (frozen layers) have valid ImageNet weights
+    # instead of random noise. This fixes the "random prediction" issue when the checkpoint 
+    # only contains finetuned layers.
+    model = DeepfakeDetector(pretrained=True)
     model.to(device)
     model.eval()
     
-    if checkpoint_path and os.path.exists(checkpoint_path):
-        try:
-            print(f"Loading checkpoint: {checkpoint_path}")
-            if checkpoint_path.endswith(".safetensors") and SAFETENSORS_AVAILABLE:
-                state_dict = load_file(checkpoint_path)
-            else:
-                state_dict = torch.load(checkpoint_path, map_location=device)
-            model.load_state_dict(state_dict)
-            print("✅ Model loaded successfully!")
-        except Exception as e:
-            print(f"⚠️ Warning: Could not load checkpoint: {e}")
-            print("Using randomly initialized model for demonstration")
-    else:
-        print("⚠️ No checkpoint found. Using randomly initialized model for demonstration")
+    # Check if file exists first
+    if not os.path.exists(checkpoint_path):
+        print(f"❌ CRITICAL ERROR: Model file not found at: {checkpoint_path}")
+        print(f"Please ensure '{target_model_name}' exists in '{checkpoint_dir}'")
+        model = None
+        transform = get_transform()
+        return model, transform
+
+    try:
+        print(f"Loading checkpoint: {checkpoint_path}")
+        if checkpoint_path.endswith(".safetensors") and SAFETENSORS_AVAILABLE:
+            state_dict = load_file(checkpoint_path)
+        else:
+            state_dict = torch.load(checkpoint_path, map_location=device)
+            
+        # Use strict=False because the checkpoint might be a partial save (e.g. only finetuned layers)
+        # or there might be minor architecture mismatches.
+        # Since we use pretrained=True, the missing keys will remain as ImageNet weights (valid features).
+        missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+        
+        print(f"✅ Model loaded successfully!")
+        if missing_keys:
+            print(f"ℹ️  {len(missing_keys)} keys missing from checkpoint (using pretrained defaults).")
+        if unexpected_keys:
+            print(f"ℹ️  {len(unexpected_keys)} unexpected keys in checkpoint.")
+        
+    except Exception as e:
+        print(f"❌ Error loading checkpoint: {e}")
+        print("Predictions will fail until this is resolved.")
+        model = None
     
     transform = get_transform()
     return model, transform
@@ -102,6 +113,9 @@ def allowed_file(filename):
 
 def predict_image(image_path):
     """Make prediction on a single image"""
+    if model is None:
+        return None, "Error: Model not loaded. Check backend logs for 'best_finetuned_datasetB.safetensors' error."
+
     try:
         # Read and preprocess image
         image = cv2.imread(image_path)
@@ -112,7 +126,6 @@ def predict_image(image_path):
         augmented = transform(image=image)
         image_tensor = augmented['image'].unsqueeze(0).to(device)
         
-        # Make prediction
         # Make prediction
         logits = model(image_tensor)
         prob = torch.sigmoid(logits).item()
@@ -152,7 +165,9 @@ def predict_image(image_path):
 @app.route('/')
 def index():
     """Serve the frontend"""
-    return send_from_directory('frontend', 'index.html')
+    # Use absolute path to avoid CWD issues
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
+    return send_from_directory(frontend_dir, 'index.html')
 
 @app.route('/history_uploads/<path:filename>')
 def serve_history_image(filename):
