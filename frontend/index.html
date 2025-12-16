@@ -12,14 +12,23 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="showcase.css">
 </head>
 
 <body>
     <!-- Animated Background -->
+    <div id="canvas-container"></div>
     <div class="mesh-background"></div>
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress-container">
+        <div class="scroll-progress-bar" id="scrollProgress"></div>
+    </div>
     <div id="particles-js"></div>
+
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
 
     <!-- Navigation -->
     <nav class="navbar">
@@ -48,7 +57,23 @@
             <div class="gradient-orb orb-2"></div>
             <div class="gradient-orb orb-3"></div>
 
-            <!-- Hero Lottie Animation Removed -->
+            <!-- Floating 3D Objects -->
+            <div class="floating-3d-object floating-cube" id="floatingCube">
+                <div class="cube-face cube-front"></div>
+                <div class="cube-face cube-back"></div>
+                <div class="cube-face cube-right"></div>
+                <div class="cube-face cube-left"></div>
+                <div class="cube-face cube-top"></div>
+                <div class="cube-face cube-bottom"></div>
+            </div>
+
+            <div class="floating-3d-object floating-pyramid" id="floatingPyramid">
+                <div class="pyramid-face pyramid-front"></div>
+                <div class="pyramid-face pyramid-back"></div>
+                <div class="pyramid-face pyramid-left"></div>
+                <div class="pyramid-face pyramid-right"></div>
+                <div class="pyramid-face pyramid-base"></div>
+            </div>
         </div>
         <div class="container">
             <div class="hero-content">
@@ -56,23 +81,23 @@
                     <span class="badge-dot"></span>
                     <span>AI-Powered Detection</span>
                 </div>
-                <h1 class="hero-title">
+                <h1 class="hero-title" data-aos="fade-up" data-aos-delay="100">
                     Protect Reality with
                     <br />
                     <span class="gradient-text-hero">Advanced AI Detection</span>
                 </h1>
-                <p class="hero-description">
+                <p class="hero-description" data-aos="fade-up" data-aos-delay="200">
                     Welcome to the future of media authentication. Our cutting-edge deepfake detection system leverages
                     state-of-the-art AI to identify manipulated content with unprecedented accuracy.
                 </p>
-                <div class="hero-actions">
+                <div class="hero-actions" data-aos="fade-up" data-aos-delay="300">
                     <a href="analysis.html" class="btn-hero-primary">Try Detection Now</a>
                     <a href="analysis.html" class="btn-hero-secondary">
                         <span class="play-icon">▶</span>
                         Watch Demo
                     </a>
                 </div>
-                <div class="hero-stats">
+                <div class="hero-stats" data-aos="zoom-in" data-aos-delay="400">
                     <div class="stat-item">
                         <div class="stat-value">99.8%</div>
                         <div class="stat-label">Accuracy Rate</div>
@@ -93,15 +118,25 @@
             </div>
     </section>
 
+    <!-- Section Divider (Wave) -->
+    <div class="section-divider">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+                class="shape-fill"></path>
+        </svg>
+    </div>
+
     <!-- Features Section -->
     <section id="features" class="features-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Cutting-Edge <span class="gradient-text">Features</span></h2>
+                <h2 class="section-title glitch-hover" data-text="Cutting-Edge Features">Cutting-Edge <span
+                        class="gradient-text">Features</span></h2>
                 <p class="section-subtitle">Advanced technology powering the next generation of deepfake detection</p>
             </div>
             <div class="features-grid">
-                <div class="feature-card card-glow">
+                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
                     <div class="feature-icon icon-ai">
                         <img src="deep_learning_icon.png" alt="Deep Learning"
                             style="width: 100%; height: 100%; object-fit: contain;">
@@ -114,7 +149,7 @@
                         <span class="tag">Multi-Modal</span>
                     </div>
                 </div>
-                <div class="feature-card card-glow">
+                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
                     <div class="feature-icon icon-speed">
                         <img src="realtime_analysis_icon.png" alt="Real-Time Analysis"
                             style="width: 100%; height: 100%; object-fit: contain;">
@@ -127,7 +162,7 @@
                         <span class="tag">Batch Processing</span>
                     </div>
                 </div>
-                <div class="feature-card card-glow">
+                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
                     <div class="feature-icon icon-shield">
                         <img src="accuracy_icon.png" alt="Accuracy"
                             style="width: 100%; height: 100%; object-fit: contain;">
@@ -140,7 +175,7 @@
                         <span class="tag">Tested</span>
                     </div>
                 </div>
-                <div class="feature-card card-glow">
+                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
                     <div class="feature-icon icon-analytics">
                         <img src="analytics_icon.png" alt="Analytics"
                             style="width: 100%; height: 100%; object-fit: contain;">
@@ -165,27 +200,27 @@
                 <p class="section-subtitle">Enterprise-grade AI infrastructure powering reliable detection</p>
             </div>
             <div class="tech-grid">
-                <div class="tech-card">
+                <div class="tech-card" data-aos="zoom-in" data-aos-delay="100">
                     <div class="tech-icon">🧠</div>
                     <h3>SigLIP Vision</h3>
                     <p>Advanced vision-language model</p>
                 </div>
-                <div class="tech-card">
+                <div class="tech-card" data-aos="zoom-in" data-aos-delay="200">
                     <div class="tech-icon">🔥</div>
                     <h3>PyTorch</h3>
                     <p>Deep learning framework</p>
                 </div>
-                <div class="tech-card">
+                <div class="tech-card" data-aos="zoom-in" data-aos-delay="300">
                     <div class="tech-icon">🤗</div>
                     <h3>Transformers</h3>
                     <p>State-of-the-art NLP & CV</p>
                 </div>
-                <div class="tech-card">
+                <div class="tech-card" data-aos="zoom-in" data-aos-delay="400">
                     <div class="tech-icon">🐍</div>
                     <h3>Python</h3>
                     <p>Core programming language</p>
                 </div>
-                <div class="tech-card">
+                <div class="tech-card" data-aos="zoom-in" data-aos-delay="500">
                     <div class="tech-icon">🎯</div>
                     <h3>SafeTensors</h3>
                     <p>Secure model storage</p>
@@ -205,11 +240,11 @@
 
             <!-- Comparison Slider -->
             <div class="comparison-container">
-                <div class="comparison-header">
+                <div class="comparison-header" data-aos="fade-right">
                     <h3>Detection <span style="color: var(--accent-yellow)">Comparison</span></h3>
                     <p>Visual demonstration of deepfake detection analysis</p>
                 </div>
-                <div class="img-comp-container"
+                <div class="img-comp-container" data-aos="zoom-in"
                     style="height: 450px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="text-align: center; padding: 40px;">
                         <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
@@ -223,8 +258,9 @@
 
 
             <div class="showcase-grid">
-                <div class="showcase-item">
-                    <div class="showcase-image-wrapper">
+                <div class="showcase-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="showcase-image-wrapper scan-container">
+                        <div class="scan-line"></div>
                         <div class="showcase-image real-sample"></div>
                         <div class="showcase-badge badge-real">✓ REAL</div>
                         <div class="confidence-bar">
@@ -235,8 +271,9 @@
                     <h4 class="showcase-title">Authentic Media</h4>
                     <p class="showcase-description">Natural textures and realistic features detected</p>
                 </div>
-                <div class="showcase-item">
-                    <div class="showcase-image-wrapper">
+                <div class="showcase-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="showcase-image-wrapper scan-container">
+                        <div class="scan-line fake-scan"></div>
                         <div class="showcase-image fake-sample"></div>
                         <div class="showcase-badge badge-fake">⚠ FAKE</div>
                         <div class="confidence-bar">
@@ -244,11 +281,12 @@
                             <span class="confidence-text">99% Confidence</span>
                         </div>
                     </div>
-                    <h4 class="showcase-title">AI Generated</h4>
+                    <h4 class="showcase-title glitch-hover" data-text="AI Generated">AI Generated</h4>
                     <p class="showcase-description">Synthetic artifacts and anomalies identified</p>
                 </div>
-                <div class="showcase-item">
-                    <div class="showcase-image-wrapper">
+                <div class="showcase-item" data-aos="fade-up" data-aos-delay="300">
+                    <div class="showcase-image-wrapper scan-container">
+                        <div class="scan-line fake-scan"></div>
                         <div class="showcase-image deepfake-sample"></div>
                         <div class="showcase-badge badge-fake">⚠ DEEPFAKE</div>
                         <div class="confidence-bar">
@@ -256,11 +294,12 @@
                             <span class="confidence-text">97% Confidence</span>
                         </div>
                     </div>
-                    <h4 class="showcase-title">Face Swap Detected</h4>
+                    <h4 class="showcase-title glitch-hover" data-text="Face Swap Detected">Face Swap Detected</h4>
                     <p class="showcase-description">Manipulated facial features found</p>
                 </div>
-                <div class="showcase-item">
-                    <div class="showcase-image-wrapper">
+                <div class="showcase-item" data-aos="fade-up" data-aos-delay="400">
+                    <div class="showcase-image-wrapper scan-container">
+                        <div class="scan-line fake-scan"></div>
                         <div class="showcase-image ai-art-sample"></div>
                         <div class="showcase-badge badge-fake">⚠ AI ART</div>
                         <div class="confidence-bar">
@@ -268,7 +307,7 @@
                             <span class="confidence-text">99.5% Confidence</span>
                         </div>
                     </div>
-                    <h4 class="showcase-title">Synthetic Art</h4>
+                    <h4 class="showcase-title glitch-hover" data-text="Synthetic Art">Synthetic Art</h4>
                     <p class="showcase-description">AI-generated artwork patterns detected</p>
                 </div>
             </div>
@@ -424,6 +463,9 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="three_bg.js"></script>
     <script src="script.js"></script>
 </body>
 

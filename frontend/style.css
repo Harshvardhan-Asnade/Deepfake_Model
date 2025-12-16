@@ -19,9 +19,17 @@
     --accent-yellow-dim: #D1E300;
     --accent-dark: #0A0A0A;
 
+    /* Scroll Story Variables */
+    --scroll-reveal-distance: 50px;
+    --scroll-transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, #E3F514 0%, #B8CC00 100%);
     --gradient-glow: radial-gradient(circle at center, rgba(227, 245, 20, 0.4) 0%, transparent 70%);
+
+    /* Atmos & Transitions */
+    --page-transition: 0.6s ease-in-out;
+
     --gradient-text: linear-gradient(180deg, #FFFFFF 0%, #E3F514 100%);
 
     /* Text Colors */
@@ -75,7 +83,80 @@ body {
     perspective: 1000px;
 }
 
+/* Scroll Progress Bar */
+.scroll-progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 1001;
+    background: transparent;
+    pointer-events: none;
+}
+
+.scroll-progress-bar {
+    height: 100%;
+    background: var(--accent-yellow);
+    width: 0%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px var(--accent-yellow);
+}
+
+/* Scroll Text Reveal */
+.scroll-reveal {
+    opacity: 0.2;
+    transform: translateY(20px);
+    transition: all 0.8s ease-out;
+}
+
+.scroll-reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.scroll-dim {
+    transition: opacity 0.5s ease;
+}
+
+/* Parallax Element Base */
+.parallax-item {
+    will-change: transform;
+    transition: transform 0.1s linear;
+}
+
 /* Particle Background - Removed */
+/* Analysis Page Specific Font Override Removed */
+
+/* 3D Background Container */
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    opacity: 0.6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-yellow);
+}
+
 #particles-js {
     position: fixed;
     width: 100%;
@@ -243,7 +324,101 @@ body {
     width: 100%;
 }
 
-/* ==================== BUTTONS ==================== */
+/* ==================== BUTTONS ====================*/
+/* Button Ripple Effect */
+.btn-primary,
+.btn-hero-primary,
+.btn-hero-secondary {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+    /* Fix for Safari border-radius clipping */
+}
+
+span.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    background-color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* 3D Card Tilt Base Styles */
+.feature-card,
+.tech-card {
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    will-change: transform;
+    /* Transition is handled by JS for smoothness, or CSS for reset */
+    transition: transform 0.1s ease-out;
+}
+
+/* Input Focus Glow */
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 15px rgba(227, 245, 20, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Loaders & Skeletons */
+.skeleton {
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.loading-dots:after {
+    content: '.';
+    animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+
+    0%,
+    20% {
+        content: '.';
+    }
+
+    40% {
+        content: '..';
+    }
+
+    60% {
+        content: '...';
+    }
+
+    80%,
+    100% {
+        content: '';
+    }
+}
+
+/* Button Base Styles */
 .btn-primary {
     background: var(--accent-yellow);
     color: var(--text-inverse);
@@ -395,12 +570,209 @@ body {
     animation-delay: 14s;
 } */
 
+/* Section Dividers */
+.section-divider {
+    position: relative;
+    top: -1px;
+    /* Fix gap */
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.section-divider svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 60px;
+}
+
+.section-divider .shape-fill {
+    fill: var(--primary-bg);
+}
+
 /* Banana Mode Specifics */
 .orb-1,
 .orb-2,
 .orb-3 {
     background: radial-gradient(circle, var(--accent-yellow), transparent 70%);
     opacity: 0.15;
+}
+
+/* ==================== FLOATING 3D OBJECTS ==================== */
+.floating-3d-object {
+    position: absolute;
+    transform-style: preserve-3d;
+    animation: floatUpDown 6s ease-in-out infinite;
+    transition: transform 0.3s ease-out;
+    pointer-events: none;
+}
+
+.floating-cube {
+    width: 120px;
+    height: 120px;
+    top: 20%;
+    right: 15%;
+    animation-delay: 0s;
+}
+
+.floating-pyramid {
+    width: 100px;
+    height: 100px;
+    bottom: 25%;
+    left: 10%;
+    animation-delay: -3s;
+}
+
+/* Cube Faces */
+.cube-face {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: rgba(227, 245, 20, 0.08);
+    border: 1px solid rgba(227, 245, 20, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+.cube-front {
+    transform: rotateY(0deg) translateZ(60px);
+}
+
+.cube-back {
+    transform: rotateY(180deg) translateZ(60px);
+}
+
+.cube-right {
+    transform: rotateY(90deg) translateZ(60px);
+}
+
+.cube-left {
+    transform: rotateY(-90deg) translateZ(60px);
+}
+
+.cube-top {
+    transform: rotateX(90deg) translateZ(60px);
+}
+
+.cube-bottom {
+    transform: rotateX(-90deg) translateZ(60px);
+}
+
+/* Pyramid Faces */
+.pyramid-face {
+    position: absolute;
+    background: rgba(227, 245, 20, 0.1);
+    border: 1px solid rgba(227, 245, 20, 0.4);
+    backdrop-filter: blur(5px);
+}
+
+.pyramid-front {
+    width: 0;
+    height: 0;
+    border-left: 50px solid transparent;
+    border-right: 50px solid transparent;
+    border-bottom: 100px solid rgba(227, 245, 20, 0.1);
+    transform: rotateY(0deg) translateZ(50px);
+    background: none;
+    border-bottom-color: rgba(227, 245, 20, 0.15);
+}
+
+.pyramid-back {
+    width: 0;
+    height: 0;
+    border-left: 50px solid transparent;
+    border-right: 50px solid transparent;
+    border-bottom: 100px solid rgba(227, 245, 20, 0.1);
+    transform: rotateY(180deg) translateZ(50px);
+    background: none;
+    border-bottom-color: rgba(227, 245, 20, 0.15);
+}
+
+.pyramid-left {
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-right: 100px solid rgba(227, 245, 20, 0.1);
+    transform: rotateY(-90deg) translateZ(0px);
+    background: none;
+    border-right-color: rgba(227, 245, 20, 0.15);
+}
+
+.pyramid-right {
+    width: 0;
+    height: 0;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 100px solid rgba(227, 245, 20, 0.1);
+    transform: rotateY(90deg) translateZ(0px);
+    background: none;
+    border-left-color: rgba(227, 245, 20, 0.15);
+}
+
+.pyramid-base {
+    width: 100px;
+    height: 100px;
+    background: rgba(227, 245, 20, 0.08);
+    transform: rotateX(90deg) translateZ(0px);
+}
+
+/* Floating Animation */
+@keyframes floatUpDown {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotateX(15deg) rotateY(20deg);
+    }
+
+    50% {
+        transform: translateY(-30px) rotateX(15deg) rotateY(20deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .floating-cube {
+        width: 80px;
+        height: 80px;
+        right: 5%;
+    }
+
+    .cube-face {
+        width: 80px;
+        height: 80px;
+    }
+
+    .cube-front {
+        transform: rotateY(0deg) translateZ(40px);
+    }
+
+    .cube-back {
+        transform: rotateY(180deg) translateZ(40px);
+    }
+
+    .cube-right {
+        transform: rotateY(90deg) translateZ(40px);
+    }
+
+    .cube-left {
+        transform: rotateY(-90deg) translateZ(40px);
+    }
+
+    .cube-top {
+        transform: rotateX(90deg) translateZ(40px);
+    }
+
+    .cube-bottom {
+        transform: rotateX(-90deg) translateZ(40px);
+    }
+
+    .floating-pyramid {
+        width: 70px;
+        height: 70px;
+        left: 5%;
+    }
 }
 
 @keyframes float {
@@ -2011,4 +2383,97 @@ input:checked+.slider:before {
     background: rgba(255, 59, 48, 0.2);
     box-shadow: 0 0 20px rgba(255, 59, 48, 0.2);
     transform: translateY(-2px);
+}
+
+/* ==================== DESIGN ENHANCEMENTS ==================== */
+
+/* 1. Glitch Effect */
+.glitch-hover {
+    position: relative;
+    display: inline-block;
+}
+
+.glitch-hover:hover::before,
+.glitch-hover:hover::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch-hover:hover::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff00c1;
+    clip-path: inset(44% 0 61% 0);
+    animation: glitch-anim 0.3s infinite linear alternate-reverse;
+}
+
+.glitch-hover:hover::after {
+    left: -2px;
+    text-shadow: -2px 0 #00fff9;
+    clip-path: inset(58% 0 43% 0);
+    animation: glitch-anim 0.3s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip-path: inset(42% 0 10% 0); transform: skew(0.5deg); }
+    10% { clip-path: inset(18% 0 88% 0); transform: skew(0.4deg); }
+    20% { clip-path: inset(76% 0 11% 0); transform: skew(0.1deg); }
+    30% { clip-path: inset(34% 0 29% 0); transform: skew(0.5deg); }
+    40% { clip-path: inset(12% 0 71% 0); transform: skew(0.6deg); }
+    50% { clip-path: inset(93% 0 3% 0); transform: skew(0.8deg); }
+    60% { clip-path: inset(7% 0 54% 0); transform: skew(0.2deg); }
+    70% { clip-path: inset(52% 0 17% 0); transform: skew(0.9deg); }
+    80% { clip-path: inset(23% 0 38% 0); transform: skew(0.3deg); }
+    90% { clip-path: inset(61% 0 6% 0); transform: skew(0.7deg); }
+    100% { clip-path: inset(84% 0 69% 0); transform: skew(0.4deg); }
+}
+
+/* Glitch effect for showcase badges */
+.badge-fake {
+    transition: all 0.3s ease;
+}
+
+.badge-fake:hover {
+    animation: glitch-badge 0.5s infinite;
+}
+
+@keyframes glitch-badge {
+    0%, 100% { transform: translate(0); text-shadow: none; }
+    25% { transform: translate(-2px, 1px); text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9; }
+    75% { transform: translate(2px, -1px); text-shadow: -2px 0 #ff00c1, 2px 0 #00fff9; }
+}
+
+/* 2. Holographic Scanner */
+.scan-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--accent-yellow);
+    box-shadow: 0 0 15px var(--accent-yellow), 0 0 30px var(--accent-yellow);
+    opacity: 0.6;
+    animation: scanMove 3s linear infinite;
+    z-index: 10;
+}
+
+/* Fake scanner is Red */
+.scan-line.fake-scan {
+    background: #ff4444;
+    box-shadow: 0 0 15px #ff4444, 0 0 30px #ff4444;
+}
+
+@keyframes scanMove {
+    0% { top: -10%; opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { top: 110%; opacity: 0; }
 }

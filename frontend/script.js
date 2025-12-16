@@ -50,54 +50,167 @@ const playSound = (type) => {
 };
 
 // ==================== PARTICLE BACKGROUND ====================
-if (document.getElementById('particles-js')) {
-    particlesJS('particles-js', {
-        particles: {
-            number: { value: 60, density: { enable: true, value_area: 800 } },
-            color: { value: ['#E3F514', '#FFFFFF'] },
-            shape: { type: 'circle' },
-            opacity: {
-                value: 0.6,
-                random: true,
-                anim: { enable: true, speed: 0.5, opacity_min: 0.1, sync: false }
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AOS
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true,
+            mirror: false,
+            offset: 100
+        });
+    }
+
+    // Initialize Particles.js (if element exists)
+    if (document.getElementById('particles-js') && typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 60, density: { enable: true, value_area: 800 } },
+                color: { value: '#E3F514' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.3, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#E3F514',
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false,
+                }
             },
-            size: {
-                value: 2,
-                random: true,
-                anim: { enable: true, speed: 2, size_min: 0.1, sync: false }
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: true, mode: 'push' },
+                    resize: true
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 }
+                }
             },
-            line_linked: {
-                enable: true,
-                distance: 150,
-                color: '#E3F514',
-                opacity: 0.15,
-                width: 1
-            },
-            move: {
-                enable: true,
-                speed: 1,
-                direction: 'none',
-                random: false,
-                straight: false,
-                out_mode: 'out',
-                bounce: false
-            }
-        },
-        interactivity: {
-            detect_on: 'canvas',
-            events: {
-                onhover: { enable: true, mode: 'grab' },
-                onclick: { enable: true, mode: 'push' },
-                resize: true
-            },
-            modes: {
-                grab: { distance: 140, line_linked: { opacity: 0.6 } },
-                push: { particles_nb: 4 }
-            }
-        },
-        retina_detect: true
+            retina_detect: true
+        });
+    }
+
+    // ==================== MICRO-INTERACTIONS ====================
+
+    // 1. Button Ripple Effect
+    const buttons = document.querySelectorAll('.btn-primary, .btn-hero-primary, .btn-hero-secondary');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            let x = e.clientX - e.target.offsetLeft;
+            let y = e.clientY - e.target.offsetTop;
+
+            let ripples = document.createElement('span');
+            ripples.style.left = x + 'px';
+            ripples.style.top = y + 'px';
+            ripples.classList.add('ripple');
+            this.appendChild(ripples);
+
+            setTimeout(() => {
+                ripples.remove();
+            }, 600);
+        });
     });
-}
+
+    // 2. 3D Card Tilt Effect
+    const tiltCards = document.querySelectorAll('.feature-card, .tech-card, .showcase-item');
+
+    tiltCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // Calculate rotation (max 10 degrees)
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            // Reset position
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+    });
+
+    // ==================== FLOATING 3D OBJECTS PARALLAX ====================
+    const floatingCube = document.getElementById('floatingCube');
+    const floatingPyramid = document.getElementById('floatingPyramid');
+
+    if (floatingCube || floatingPyramid) {
+        let mouseX = 0;
+        let mouseY = 0;
+        let currentX = 0;
+        let currentY = 0;
+
+        // Track mouse position
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Smooth animation loop
+        function animate3DObjects() {
+            // Smooth interpolation
+            currentX += (mouseX - currentX) * 0.05;
+            currentY += (mouseY - currentY) * 0.05;
+
+            if (floatingCube) {
+                const rotateY = 20 + currentX * 15;
+                const rotateX = 15 - currentY * 15;
+                const translateX = currentX * 30;
+                const translateY = currentY * 30;
+
+                floatingCube.style.transform = `
+                    translateY(-30px) 
+                    translateX(${translateX}px) 
+                    translateY(${translateY}px)
+                    rotateX(${rotateX}deg) 
+                    rotateY(${rotateY}deg)
+                    scale(1)
+                `;
+            }
+
+            if (floatingPyramid) {
+                const rotateY = -20 + currentX * -20;
+                const rotateX = 15 - currentY * -10;
+                const translateX = currentX * -40;
+                const translateY = currentY * -40;
+
+                floatingPyramid.style.transform = `
+                    translateY(0px) 
+                    translateX(${translateX}px) 
+                    translateY(${translateY}px)
+                    rotateX(${rotateX}deg) 
+                    rotateY(${rotateY}deg)
+                    scale(1)
+                `;
+            }
+
+            requestAnimationFrame(animate3DObjects);
+        }
+
+        animate3DObjects();
+    }
+});
 
 // ==================== SCROLL ANIMATIONS ====================
 const observerOptions = {
@@ -226,22 +339,182 @@ function initComparisons() {
 // Initialize slider on load
 window.addEventListener('load', initComparisons);
 
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
+// ==================== ADVANCED SCROLL STORYTELLING ====================
+let scrollY = 0;
+let lastScrollY = 0;
+let ticking = false;
 
-    if (currentScroll > 100) {
+// Elements
+const heroContent = document.querySelector('.hero-content');
+const progressBar = document.getElementById('scrollProgress');
+const parallaxItems = document.querySelectorAll('.feature-card, .tech-card, .showcase-item');
+const textReveals = document.querySelectorAll('p, h2, h3');
+
+// Add classes for text reveal
+textReveals.forEach(el => el.classList.add('scroll-reveal'));
+
+// Main Scroll Listener
+window.addEventListener('scroll', () => {
+    scrollY = window.scrollY;
+    if (!ticking) {
+        window.requestAnimationFrame(updateScrollStory);
+        ticking = true;
+    }
+});
+
+function updateScrollStory() {
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+
+    // 1. Reading Progress Bar
+    const progress = (scrollY / (documentHeight - windowHeight)) * 100;
+    if (progressBar) progressBar.style.width = `${progress}%`;
+
+    // 2. Navigation Bar Logic
+    if (scrollY > 100) {
         navbar.style.background = 'rgba(10, 10, 15, 0.95)';
         navbar.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.3)';
+        navbar.style.padding = '15px 0';
     } else {
         navbar.style.background = 'transparent';
         navbar.style.backdropFilter = 'none';
         navbar.style.boxShadow = 'none';
+        navbar.style.padding = '20px 0';
     }
 
-    lastScroll = currentScroll;
+    // 3. Hero Parallax (Fade & Scale)
+    if (heroContent && scrollY < windowHeight) {
+        const opacity = 1 - (scrollY / 700);
+        const scale = 1 - (scrollY / 2000);
+        const translateY = scrollY * 0.5;
+
+        if (opacity >= 0) {
+            heroContent.style.opacity = opacity;
+            heroContent.style.transform = `translateY(${translateY}px) scale(${scale})`;
+        }
+    }
+
+    // 4. Continuous Parallax for Cards
+    parallaxItems.forEach((item, index) => {
+        const rect = item.getBoundingClientRect();
+        // Check if in view
+        if (rect.top < windowHeight + 100 && rect.bottom > -100) {
+            // Speed varies by index to create "staggered" depth
+            const speed = (index % 3 + 1) * 0.05;
+            const offset = (scrollY * speed) * 0.5;
+            // We use transform in CSS for hover effects, so we use marginTop here to avoid conflict
+            // OR use translate3d if we want purely GPU. 
+            // Better: Applying a subtle Y shift.
+            // CAUTION: This might conflict with hover transform.
+            // Let's use a custom property instead if possible, or just skip if hovering.
+            // item.style.transform = `translateY(${offset}px)`; // Conflict risk
+        }
+    });
+
+    // 5. Text Reveal & Active State
+    textReveals.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        // Calculate center distance
+        const centerOffset = (windowHeight / 2) - (rect.top + rect.height / 2);
+
+        // Simple entry check
+        if (rect.top < windowHeight * 0.85) {
+            el.classList.add('active');
+        } else {
+            // Optional: Remove active class to re-trigger? 
+            // el.classList.remove('active'); // Keep purely additive for now
+        }
+    });
+
+    // 6. Floating Objects Scroll Drift
+    const floaters = document.querySelectorAll('.floating-3d-object');
+    floaters.forEach((el, index) => {
+        const speed = (index + 1) * 0.2;
+        el.style.marginTop = `${scrollY * speed * 1.5}px`;
+    });
+
+    lastScrollY = scrollY;
+    ticking = false;
+}
+
+// Initial call
+updateScrollStory();
+
+// ==================== POLISH & ATMOSPHERE ====================
+
+// 1. Page Transitions
+document.addEventListener('DOMContentLoaded', () => {
+    // Add transition overlay if not present
+    if (!document.querySelector('.page-transition-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'page-transition-overlay';
+        document.body.appendChild(overlay);
+
+        // Trigger fade in
+        setTimeout(() => {
+            overlay.classList.add('loaded');
+        }, 100);
+    }
 });
 
-// ==================== ANALYSIS PAGE LOGIC ====================
+// Link Interceptor
+document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', e => {
+        const href = link.getAttribute('href');
+
+        // Only intercept internal links
+        if (href && href.startsWith('#') || href.includes('javascript:') || !href) return;
+
+        e.preventDefault();
+        const overlay = document.querySelector('.page-transition-overlay');
+        overlay.classList.remove('loaded'); // Fade to black
+
+        setTimeout(() => {
+            window.location.href = href;
+        }, 600); // Match CSS duration
+    });
+});
+
+// 2. Magnetic Buttons
+const magneticBtns = document.querySelectorAll('.btn-primary, .btn-hero-primary, .btn-hero-secondary, .nav-link');
+
+magneticBtns.forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        // Magnetic pull strength
+        btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+    });
+
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0, 0)';
+    });
+});
+
+// 3. Motion Branding (Logo Animation)
+const logo = document.querySelector('.logo-text');
+if (logo) {
+    logo.style.opacity = '0';
+    logo.style.transform = 'translateY(-20px)';
+    logo.style.transition = 'all 0.8s ease-out';
+
+    setTimeout(() => {
+        logo.style.opacity = '1';
+        logo.style.transform = 'translateY(0)';
+    }, 200);
+
+    // Scroll reaction for logo
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            logo.style.fontSize = '1.5rem'; // Shrink
+        } else {
+            logo.style.fontSize = '1.8rem'; // Reset
+        }
+    });
+}
+
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const previewArea = document.getElementById('previewArea');
