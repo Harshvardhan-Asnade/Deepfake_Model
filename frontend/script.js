@@ -721,23 +721,56 @@ function updateAnalysisUI(result) {
                 data: [fakeP, realP],
                 backgroundColor: [
                     'rgba(227, 245, 20, 0.9)', // Fake (Electric Yellow)
-                    'rgba(255, 255, 255, 0.1)'  // Real (White transparent)
+                    'rgba(16, 185, 129, 0.9)'  // Real (Green)
                 ],
                 borderColor: [
-                    'rgba(227, 245, 20, 1)',
-                    'rgba(255, 255, 255, 0.2)'
+                    'rgba(227, 245, 20, 1)',   // Fake border
+                    'rgba(16, 185, 129, 1)'     // Real border
                 ],
-                borderWidth: 1
+                borderWidth: 2,
+                hoverOffset: 8
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '65%', // Doughnut hole size
             plugins: {
                 legend: {
                     position: 'right',
-                    labels: { color: '#fff' }
+                    labels: {
+                        color: '#fff',
+                        padding: 15,
+                        font: {
+                            size: 13,
+                            weight: '600',
+                            family: "'Inter', sans-serif"
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(227, 245, 20, 0.5)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function (context) {
+                            const label = context.label || '';
+                            return ' ' + label;
+                        }
+                    }
                 }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1000,
+                easing: 'easeOutQuart'
             }
         }
     });
@@ -1188,4 +1221,644 @@ async function clearHistory() {
 // Auto-load history on history.html
 if (window.location.pathname.includes('history.html')) {
     window.addEventListener('load', loadHistory);
+}
+
+// ==================== MULTI-FILE UPLOAD SYSTEM ====================
+let uploadQueue = [];
+let isProcessingQueue = false;
+let currentUploadIndex = 0;
+
+// For analysis page only
+if (fileInput && uploadArea) {
+    // Update file input to handle multiple files
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            addFilesToQueue(files);
+        }
+    });
+
+    // Enhanced drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('upload-area-active');
+        const fileCount = e.dataTransfer.items.length;
+        const badge = document.getElementById('fileCountBadge');
+        badge.textContent = `${fileCount} file${fileCount > 1 ? 's' : ''} ready`;
+        badge.style.display = 'block';
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('upload-area-active');
+        const badge = document.getElementById('fileCountBadge');
+        badge.style.display = 'none';
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('upload-area-active');
+        const badge = document.getElementById('fileCountBadge');
+        badge.style.display = 'none';
+
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (files.length > 0) {
+            addFilesToQueue(files);
+        } else {
+            alert('Please drop image files only');
+        }
+    });
+}
+
+function addFilesToQueue(files) {
+    // Hide upload area, show queue
+    uploadArea.style.display = 'none';
+    document.getElementById('fileQueueContainer').style.display = 'block';
+
+    files.forEach(file => {
+        const fileObj = {
+            file: file,
+            id: Date.now() + Math.random(),
+            status: 'pending', // pending, uploading, completed, error
+            progress: 0,
+            result: null
+        };
+        uploadQueue.push(fileObj);
+        renderFileQueueItem(fileObj);
+    });
+
+    updateQueueCount();
+}
+
+function renderFileQueueItem(fileObj) {
+    const queue = document.getElementById('fileQueue');
+    const item = document.createElement('div');
+    item.className = 'file-queue-item';
+    item.id = `file-${fileObj.id}`;
+
+    const sizeKB = (fileObj.file.size / 1024).toFixed(1);
+    const sizeDisplay = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
+
+    item.innerHTML = `
+        <div class="file-icon">📷</div>
+        <div class="file-info">
+            <div class="file-name">${fileObj.file.name}</div>
+            <div class="file-size">${sizeDisplay}</div>
+        </div>
+        <div class="file-status pending">Pending</div>
+        <button class="file-remove" onclick="removeFromQueue('${fileObj.id}')">×</button>
+    `;
+
+    queue.appendChild(item);
+}
+
+function removeFromQueue(fileId) {
+    uploadQueue = uploadQueue.filter(f => f.id != fileId);
+    const item = document.getElementById(`file-${fileId}`);
+    if (item) {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        setTimeout(() => item.remove(), 300);
+    }
+    updateQueueCount();
+
+    // If queue is empty, show upload area again
+    if (uploadQueue.length === 0) {
+        clearQueue();
+    }
+}
+
+function clearQueue() {
+    uploadQueue = [];
+    document.getElementById('fileQueue').innerHTML = '';
+    document.getElementById('fileQueueContainer').style.display = 'none';
+    uploadArea.style.display = 'flex';
+    fileInput.value = '';
+    updateQueueCount();
+}
+
+function updateQueueCount() {
+    document.getElementById('queueCount').textContent = uploadQueue.length;
+}
+
+async function processUploadQueue() {
+    if (isProcessingQueue || uploadQueue.length === 0) return;
+
+    isProcessingQueue = true;
+    const startBtn = document.getElementById('startUploadBtn');
+    startBtn.disabled = true;
+    startBtn.textContent = 'Processing...';
+
+    playSound('scan');
+
+    for (let i = 0; i < uploadQueue.length; i++) {
+        const fileObj = uploadQueue[i];
+        if (fileObj.status === 'completed') continue;
+
+        await uploadSingleFile(fileObj);
+    }
+
+    isProcessingQueue = false;
+    startBtn.disabled = false;
+    startBtn.textContent = 'Analysis Complete';
+    playSound('success');
+
+    // Refresh statistics and recent
+    await loadStatisticsAndRecent();
+
+    // Show success message
+    setTimeout(() => {
+        alert(`All files processed! ${uploadQueue.filter(f => f.status === 'completed').length}/${uploadQueue.length} succeeded.`);
+        clearQueue();
+    }, 1000);
+}
+
+async function uploadSingleFile(fileObj) {
+    const item = document.getElementById(`file-${fileObj.id}`);
+    if (!item) return;
+
+    // Update status
+    fileObj.status = 'uploading';
+    item.classList.add('uploading');
+    const statusEl = item.querySelector('.file-status');
+    statusEl.className = 'file-status uploading';
+    statusEl.textContent = 'Uploading...';
+
+    // Add progress bar
+    const fileInfo = item.querySelector('.file-info');
+    if (!fileInfo.querySelector('.progress-container')) {
+        const progressHTML = `
+            <div class="progress-container">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" style="width: 0%" id="progress-${fileObj.id}"></div>
+                </div>
+                <div class="progress-details">
+                    <span id="progress-percent-${fileObj.id}">0%</span>
+                    <span id="progress-status-${fileObj.id}">Starting...</span>
+                </div>
+            </div>
+        `;
+        fileInfo.insertAdjacentHTML('beforeend', progressHTML);
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('file', fileObj.file);
+
+        const startTime = Date.now();
+
+        // Use XMLHttpRequest for progress tracking
+        const result = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    const progressBar = document.getElementById(`progress-${fileObj.id}`);
+                    const progressPercent = document.getElementById(`progress-percent-${fileObj.id}`);
+                    const progressStatus = document.getElementById(`progress-status-${fileObj.id}`);
+
+                    if (progressBar) progressBar.style.width = `${percent}%`;
+                    if (progressPercent) progressPercent.textContent = `${percent}%`;
+
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const speed = e.loaded / elapsed / 1024; // KB/s
+                    if (progressStatus) {
+                        progressStatus.textContent = `${speed.toFixed(1)} KB/s`;
+                    }
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error('Upload failed'));
+                }
+            });
+
+            xhr.addEventListener('error', () => reject(new Error('Network error')));
+
+            xhr.open('POST', '/api/predict');
+            xhr.send(formData);
+        });
+
+        // Success
+        fileObj.status = 'completed';
+        fileObj.result = result;
+        item.classList.remove('uploading');
+        item.classList.add('completed');
+        statusEl.className = 'file-status completed';
+        statusEl.textContent = '✓ Complete';
+
+        const progressStatus = document.getElementById(`progress-status-${fileObj.id}`);
+        if (progressStatus) progressStatus.textContent = 'Done';
+
+    } catch (error) {
+        // Error
+        fileObj.status = 'error';
+        item.classList.remove('uploading');
+        item.classList.add('error');
+        statusEl.className = 'file-status error';
+        statusEl.textContent = '✗ Failed';
+
+        const progressStatus = document.getElementById(`progress-status-${fileObj.id}`);
+        if (progressStatus) progressStatus.textContent = error.message;
+
+        console.error('Upload error:', error);
+    }
+}
+
+// ==================== STATISTICS AND RECENT ANALYSES ====================
+async function loadStatisticsAndRecent() {
+    try {
+        const response = await fetch('/api/history');
+        const history = await response.json();
+
+        // Calculate statistics
+        const total = history.length;
+        const fake = history.filter(h => h.prediction === 'FAKE').length;
+        const real = history.filter(h => h.prediction === 'REAL').length;
+        const avgConf = total > 0
+            ? (history.reduce((sum, h) => sum + h.confidence, 0) / total * 100).toFixed(1)
+            : 0;
+
+        // Update statistics
+        document.getElementById('totalScans').textContent = total;
+        document.getElementById('fakeCount').textContent = fake;
+        document.getElementById('realCount').textContent = real;
+        document.getElementById('avgConfidence').textContent = `${avgConf}%`;
+
+        // Display recent 6
+        const recent = history.slice(0, 6);
+        const recentGrid = document.getElementById('recentGrid');
+
+        if (recent.length === 0) {
+            recentGrid.innerHTML = `
+                <div class="recent-grid-empty">
+                    <div class="recent-grid-empty-icon">📂</div>
+                    <p>No analyses yet. Upload images to get started!</p>
+                </div>
+            `;
+        } else {
+            recentGrid.innerHTML = recent.map(item => `
+                <div class="recent-card" onclick="window.location.href='history.html'">
+                    ${item.image_path ? `<img src="/${item.image_path}" alt="${item.filename}" class="recent-card-image" onerror="this.style.display='none'">` : ''}
+                    <div class="recent-card-content">
+                        <div class="recent-card-header">
+                            <div class="recent-badge ${item.prediction === 'FAKE' ? 'fake' : 'real'}">
+                                ${item.prediction === 'FAKE' ? '⚠ FAKE' : '✓ REAL'}
+                            </div>
+                        </div>
+                        <div class="recent-card-title">${item.filename}</div>
+                        <div class="recent-date">${new Date(item.timestamp).toLocaleDateString()}</div>
+                        <div class="recent-confidence">
+                            <div class="recent-confidence-label">Confidence: ${(item.confidence * 100).toFixed(1)}%</div>
+                            <div class="recent-confidence-bar">
+                                <div class="recent-confidence-fill" style="width: ${item.confidence * 100}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.error('Failed to load statistics and recent:', error);
+    }
+}
+
+// Load statistics on analysis page load
+if (window.location.pathname.includes('analysis.html')) {
+    window.addEventListener('load', loadStatisticsAndRecent);
+}
+
+// ==================== ENHANCED HISTORY PAGE FUNCTIONALITY ====================
+let fullHistoryData = [];
+let filteredHistoryData = [];
+let currentSortColumn = 'timestamp';
+let currentSortOrder = 'desc';
+
+// Load and render history for the enhanced history page
+async function loadEnhancedHistory() {
+    const tableBody = document.getElementById('historyTableBody');
+    const emptyState = document.getElementById('historyEmptyState');
+    const noResultsState = document.getElementById('noResultsState');
+    const tableContainer = document.getElementById('historyTable');
+
+    if (!tableBody) return; // Not on history page
+
+    try {
+        const response = await fetch('/api/history');
+        fullHistoryData = await response.json();
+        filteredHistoryData = [...fullHistoryData];
+
+        document.getElementById('totalCount').textContent = fullHistoryData.length;
+
+        if (fullHistoryData.length === 0) {
+            emptyState.style.display = 'flex';
+            tableContainer.style.display = 'none';
+            document.querySelector('.results-count').style.display = 'none';
+        } else {
+            emptyState.style.display = 'none';
+            tableContainer.style.display = 'table';
+            document.querySelector('.results-count').style.display = 'block';
+            renderHistoryTable();
+        }
+    } catch (err) {
+        console.error('Failed to load history:', err);
+    }
+}
+
+function renderHistoryTable() {
+    const tableBody = document.getElementById('historyTableBody');
+    const noResultsState = document.getElementById('noResultsState');
+    const tableContainer = document.getElementById('historyTable');
+
+    if (filteredHistoryData.length === 0) {
+        tableBody.innerHTML = '';
+        noResultsState.style.display = 'flex';
+        tableContainer.style.display = 'none';
+        document.getElementById('showingCount').textContent = '0';
+        return;
+    }
+
+    noResultsState.style.display = 'none';
+    tableContainer.style.display = 'table';
+    document.getElementById('showingCount').textContent = filteredHistoryData.length;
+
+    tableBody.innerHTML = filteredHistoryData.map(item => {
+        const isFake = item.prediction === 'FAKE';
+        const date = new Date(item.timestamp).toLocaleString();
+        const confidence = (item.confidence * 100).toFixed(1);
+
+        return `
+            <tr data-id="${item.id}">
+                <td>
+                    ${item.image_path ?
+                `<img src="/${item.image_path}" alt="${item.filename}" class="table-preview-img" onerror="this.style.display='none'">` :
+                '<div class="table-preview-img" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">📷</div>'
+            }
+                </td>
+                <td class="table-filename" title="${item.filename}">${item.filename}</td>
+                <td>
+                    <span class="table-badge ${isFake ? 'fake' : 'real'}">
+                        ${isFake ? '⚠ FAKE' : '✓ REAL'}
+                    </span>
+                </td>
+                <td>
+                    <div class="table-confidence">
+                        <span>${confidence}%</span>
+                        <div class="confidence-bar-small">
+                            <div class="confidence-fill-small" style="width: ${confidence}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="table-date">${date}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn-table-action" onclick="generateHistoryPDF(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                            📄 Report
+                        </button>
+                        <button class="btn-table-action btn-table-delete" onclick="deleteHistoryItem(${item.id})">
+                            🗑 Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Search functionality with debouncing
+let searchTimeout;
+function handleSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        applyFilters();
+    }, 300);
+}
+
+// Apply all filters
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const predictionFilter = document.getElementById('filterPrediction').value;
+    const confidenceFilter = document.getElementById('filterConfidence').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Start with full data
+    filteredHistoryData = fullHistoryData.filter(item => {
+        // Search filter
+        if (searchTerm && !item.filename.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+
+        // Prediction filter
+        if (predictionFilter !== 'all' && item.prediction !== predictionFilter) {
+            return false;
+        }
+
+        // Confidence filter
+        if (confidenceFilter !== 'all') {
+            const conf = item.confidence * 100;
+            if (confidenceFilter === 'high' && conf <= 80) return false;
+            if (confidenceFilter === 'medium' && (conf < 50 || conf > 80)) return false;
+            if (confidenceFilter === 'low' && conf >= 50) return false;
+        }
+
+        return true;
+    });
+
+    // Apply sorting
+    const [sortColumn, sortOrder] = sortBy.split('-');
+    sortHistoryData(sortColumn, sortOrder);
+
+    renderHistoryTable();
+}
+
+// Sort functionality
+function sortHistoryData(column, order) {
+    currentSortColumn = column;
+    currentSortOrder = order;
+
+    filteredHistoryData.sort((a, b) => {
+        let aVal, bVal;
+
+        switch (column) {
+            case 'filename':
+                aVal = a.filename.toLowerCase();
+                bVal = b.filename.toLowerCase();
+                break;
+            case 'confidence':
+                aVal = a.confidence;
+                bVal = b.confidence;
+                break;
+            case 'prediction':
+                aVal = a.prediction;
+                bVal = b.prediction;
+                break;
+            case 'date':
+            default:
+                aVal = new Date(a.timestamp).getTime();
+                bVal = new Date(b.timestamp).getTime();
+                break;
+        }
+
+        if (order === 'asc') {
+            return aVal > bVal ? 1 : -1;
+        } else {
+            return aVal < bVal ? 1 : -1;
+        }
+    });
+}
+
+// Alternative table header sort (if clicking headers directly)
+function sortTable(column) {
+    // Toggle order if same column
+    if (currentSortColumn === column) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortOrder = 'desc';
+    }
+
+    sortHistoryData(currentSortColumn, currentSortOrder);
+    updateSortIndicators();
+    renderHistoryTable();
+}
+
+function updateSortIndicators() {
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.classList.remove('active', 'asc', 'desc');
+    });
+
+    // Find the right column and update
+    const headers = document.querySelectorAll('.history-table th');
+    headers.forEach(th => {
+        const text = th.textContent.toLowerCase();
+        if (text.includes(currentSortColumn) ||
+            (currentSortColumn === 'timestamp' && text.includes('date'))) {
+            const indicator = th.querySelector('.sort-indicator');
+            if (indicator) {
+                indicator.classList.add('active', currentSortOrder);
+            }
+        }
+    });
+}
+
+// Delete individual item
+async function deleteHistoryItem(id) {
+    if (!confirm('Are you sure you want to delete this scan?')) return;
+
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row) {
+        row.style.opacity = '0';
+        row.style.transform = 'scale(0.95)';
+    }
+
+    try {
+        const response = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            setTimeout(() => {
+                fullHistoryData = fullHistoryData.filter(item => item.id !== id);
+                applyFilters();
+
+                // Check if history is now empty
+                if (fullHistoryData.length === 0) {
+                    document.getElementById('historyEmptyState').style.display = 'flex';
+                    document.getElementById('historyTable').style.display = 'none';
+                    document.querySelector('.results-count').style.display = 'none';
+                }
+            }, 300);
+        }
+    } catch (err) {
+        console.error('Failed to delete item:', err);
+        if (row) {
+            row.style.opacity = '1';
+            row.style.transform = 'scale(1)';
+        }
+    }
+}
+
+// Clear all history
+function confirmClearAll() {
+    if (!confirm('⚠️ WARNING: This will delete ALL scan history permanently. Are you sure?')) return;
+    if (!confirm('This action cannot be undone. Continue?')) return;
+
+    clearHistory();
+}
+
+// Export functions
+function exportHistory(format) {
+    if (filteredHistoryData.length === 0) {
+        alert('No data to export. Please run some analyses first.');
+        return;
+    }
+
+    if (format === 'csv') {
+        exportToCSV();
+    } else if (format === 'json') {
+        exportToJSON();
+    }
+}
+
+function exportToCSV() {
+    const headers = ['ID', 'Filename', 'Prediction', 'Confidence', 'Fake Probability', 'Real Probability', 'Timestamp'];
+    const rows = filteredHistoryData.map(item => [
+        item.id,
+        `"${item.filename}"`,
+        item.prediction,
+        item.confidence.toFixed(4),
+        item.fake_probability ? item.fake_probability.toFixed(4) : 'N/A',
+        item.real_probability ? item.real_probability.toFixed(4) : 'N/A',
+        item.timestamp
+    ]);
+
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    downloadFile(csvContent, 'deepguard_history.csv', 'text/csv');
+}
+
+function exportToJSON() {
+    const jsonContent = JSON.stringify(filteredHistoryData, null, 2);
+    downloadFile(jsonContent, 'deepguard_history.json', 'application/json');
+}
+
+function downloadFile(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // Show success message
+    playSound('success');
+    const format = filename.split('.').pop().toUpperCase();
+    setTimeout(() => {
+        alert(`✅ Exported ${filteredHistoryData.length} records to ${format} successfully!`);
+    }, 100);
+}
+
+// Event listeners for history page
+if (window.location.pathname.includes('history.html')) {
+    window.addEventListener('load', () => {
+        loadEnhancedHistory();
+
+        // Attach event listeners
+        const searchInput = document.getElementById('searchInput');
+        const filterPrediction = document.getElementById('filterPrediction');
+        const filterConfidence = document.getElementById('filterConfidence');
+        const sortBy = document.getElementById('sortBy');
+
+        if (searchInput) searchInput.addEventListener('input', handleSearch);
+        if (filterPrediction) filterPrediction.addEventListener('change', applyFilters);
+        if (filterConfidence) filterConfidence.addEventListener('change', applyFilters);
+        if (sortBy) sortBy.addEventListener('change', applyFilters);
+    });
 }

@@ -37,20 +37,91 @@
     </nav>
 
     <main class="analysis-container">
-        <div class="container" style="max-width: 1000px; padding-top: 40px;">
+        <div class="container" style="max-width: 1200px; padding-top: 40px;">
             <div class="section-header">
                 <h2 class="section-title">Scan <span class="gradient-text">History</span></h2>
-                <p class="section-subtitle">View your past detection results</p>
+                <p class="section-subtitle">View and manage your past detection results</p>
             </div>
 
-            <div class="history-grid" id="historyList">
-                <!-- History Items will be injected here -->
-                <div class="empty-state" id="historyEmptyState" style="grid-column: 1 / -1;">
+            <!-- Controls Bar -->
+            <div class="history-controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by filename...">
+                </div>
+
+                <div class="filter-controls">
+                    <select id="filterPrediction" class="filter-select">
+                        <option value="all">All Results</option>
+                        <option value="FAKE">Fake Only</option>
+                        <option value="REAL">Real Only</option>
+                    </select>
+
+                    <select id="filterConfidence" class="filter-select">
+                        <option value="all">All Confidence</option>
+                        <option value="high">High (>80%)</option>
+                        <option value="medium">Medium (50-80%)</option>
+                        <option value="low">Low (<50%)< /option>
+                    </select>
+
+                    <select id="sortBy" class="filter-select">
+                        <option value="date-desc">Latest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="confidence-desc">Confidence ↓</option>
+                        <option value="confidence-asc">Confidence ↑</option>
+                        <option value="filename-asc">Filename A-Z</option>
+                    </select>
+                </div>
+
+                <div class="export-controls">
+                    <button class="btn-export" onclick="exportHistory('csv')">
+                        📄 Export CSV
+                    </button>
+                    <button class="btn-export" onclick="exportHistory('json')">
+                        📋 Export JSON
+                    </button>
+                    <button class="btn-clear-all" onclick="confirmClearAll()">
+                        🗑 Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Count -->
+            <div class="results-count" id="resultsCount">
+                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> results
+            </div>
+
+            <!-- History Table -->
+            <div class="history-table-container" id="historyTableContainer">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Preview</th>
+                            <th onclick="sortTable('filename')">Filename <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('prediction')">Result <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('confidence')">Confidence <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('timestamp')">Date <span class="sort-indicator"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Rows will be populated here -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="historyEmptyState" style="display: none;">
                     <div class="empty-icon">📂</div>
                     <h3>No History Found</h3>
                     <p>Your recent analysis results will appear here.</p>
                     <a href="analysis.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">Start
                         New Analysis</a>
+                </div>
+
+                <!-- No Results State -->
+                <div class="empty-state" id="noResultsState" style="display: none;">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No Results Found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
                 </div>
             </div>
         </div>

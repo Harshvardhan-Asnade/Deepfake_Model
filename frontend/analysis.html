@@ -53,13 +53,42 @@
                             <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
                     </div>
-                    <h3 class="upload-title">Drop Image Here</h3>
-                    <p class="upload-description">Supports JPG, PNG, WEBP</p>
-                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <h3 class="upload-title">Drop Images Here</h3>
+                    <p class="upload-description">Supports JPG, PNG, WEBP · Multiple files allowed</p>
+                    <p class="file-count-badge" id="fileCountBadge" style="display: none;"></p>
+                    <input type="file" id="fileInput" accept="image/*" multiple hidden>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Select
-                        File</button>
+                        Files</button>
                     <!-- Scanner Line Effect -->
                     <div class="scanner-line"></div>
+                </div>
+
+                <!-- File Queue Preview -->
+                <div class="file-queue-container" id="fileQueueContainer" style="display: none;">
+                    <div class="queue-header">
+                        <div class="queue-title-section">
+                            <h3 class="queue-title">📂 Upload Queue</h3>
+                            <span class="queue-count-badge" id="queueCount">0</span>
+                        </div>
+                        <div class="queue-actions">
+                            <button class="btn-secondary-small" onclick="document.getElementById('fileInput').click()"
+                                title="Add more files">
+                                + Add More
+                            </button>
+                            <button class="btn-secondary-small" onclick="clearQueue()" title="Clear all files">
+                                🗑 Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-queue" id="fileQueue"></div>
+                    <div class="queue-footer">
+                        <button class="btn-secondary-outline" onclick="clearQueue()" style="flex: 1;">
+                            ← Back to Upload
+                        </button>
+                        <button class="btn-primary" onclick="processUploadQueue()" style="flex: 2;" id="startUploadBtn">
+                            🚀 Start Analysis
+                        </button>
+                    </div>
                 </div>
 
                 <div class="preview-area" id="previewArea" style="display: none;">
@@ -129,6 +158,47 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="container" style="max-width: 1200px; margin-top: 60px;" id="statisticsSection">
+            <div class="section-header">
+                <h2 class="section-title">Analysis <span class="gradient-text">Statistics</span></h2>
+                <p class="section-subtitle">Overview of your detection history</p>
+            </div>
+            <div class="statistics-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="totalScans">0</div>
+                    <div class="stat-label">Total Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="fakeCount">0</div>
+                    <div class="stat-label">Fake Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value" id="realCount">0</div>
+                    <div class="stat-label">Real Images</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="avgConfidence">0%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Analyses -->
+        <div class="container" style="max-width: 1200px; margin-top: 40px; padding-bottom: 60px;" id="recentSection">
+            <div class="section-header">
+                <h2 class="section-title">Recent <span class="gradient-text">Analyses</span></h2>
+                <a href="history.html" class="btn-secondary" style="font-size: 14px;">View All History →</a>
+            </div>
+            <div class="recent-grid" id="recentGrid">
+                <!-- Recent items will be populated here -->
+            </div>
         </div>
     </main>
 
