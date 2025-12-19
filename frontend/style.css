@@ -791,7 +791,148 @@ select:focus {
     }
 }
 
-/* ==================== HERO REVEAL EFFECT ==================== */
+
+/* ==================== MOTION DESIGN EXTENSIONS ==================== */
+
+/* 1. LENIS SMOOTH SCROLL */
+html.lenis {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+    pointer-events: none;
+}
+
+/* 2. SPOTLIGHT CARD EFFECT */
+/* Base styles for cards to support the effect */
+.feature-card,
+.showcase-item,
+.tech-card {
+    position: relative;
+    background: rgba(26, 26, 26, 1); /* Fallback */
+    background: linear-gradient(145deg, #1A1A1A, #111111);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    /* Ensure vars are initialized */
+    --mouse-x: -100px;
+    --mouse-y: -100px;
+}
+
+/* The spotlight glow overlay */
+.feature-card::before,
+.showcase-item::before,
+.tech-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        800px circle at var(--mouse-x) var(--mouse-y),
+        rgba(255, 255, 255, 0.06),
+        transparent 40%
+    );
+    z-index: 2;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    opacity: 0;
+}
+
+.feature-card:hover::before,
+.showcase-item:hover::before,
+.tech-card:hover::before {
+    opacity: 1;
+}
+
+/* Specific border glow on hover using ::after */
+.feature-card::after,
+.showcase-item::after,
+.tech-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y),
+        rgba(227, 245, 20, 0.3),
+        transparent 40%
+    );
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    mix-blend-mode: overlay;
+}
+
+.feature-card:hover::after,
+.showcase-item:hover::after,
+.tech-card:hover::after {
+    opacity: 1;
+}
+
+
+/* 3. MAGNETIC BUTTONS (Utility) */
+/* Already handled in JS with transforms, but adding smooth reset */
+.btn-primary, .btn-hero-primary {
+    transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
+}
+
+
+/* 4. TEXT REVEAL ANIMATIONS */
+/* Basic Staggered Reveal for Titles */
+.hero-title, .section-title {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero-title.in-view, .section-title.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delay for section subtitle */
+.section-subtitle {
+     opacity: 0;
+     transform: translateY(20px);
+     transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+}
+
+.section-title.in-view + .section-subtitle,
+.section-header:hover .section-subtitle { /* Approximate trigger or use JS to trigger parent */
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Better: Let JS handle parent class or sibling trigger. 
+   For simplicity, we'll let existing AOS handle the subtitle or use the observer on it too if desired.
+   However, let's fix the implementation to be robust. 
+*/
+.hero-title {
+    /* Hero is usually visible on load, so we might want to default it to visible or let JS trigger it quickly */
+    animation: revealUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation-delay: 0.2s;
+}
+
+@keyframes revealUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .hero-reveal-container {
     position: absolute;
     top: 0;
