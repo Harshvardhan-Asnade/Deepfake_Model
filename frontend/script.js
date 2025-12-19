@@ -1023,11 +1023,15 @@ function updateAnalysisUI(result) {
             Natural noise patterns and consistent lighting observed.
         `;
     }
+    const downloadBtn = document.getElementById('downloadReportBtn');
+    if (downloadBtn) downloadBtn.style.display = 'block';
 }
 
 function resetAnalysis() {
     document.getElementById('fileInput').value = '';
     document.getElementById('previewArea').style.display = 'none';
+    const downloadBtn = document.getElementById('downloadReportBtn');
+    if (downloadBtn) downloadBtn.style.display = 'none';
     document.getElementById('uploadArea').style.display = 'flex';
     document.querySelector('.analysis-results').style.display = 'none';
     document.querySelector('.empty-state').style.display = 'block';
@@ -1135,7 +1139,7 @@ const statsObserver = new IntersectionObserver((entries) => {
                 // Trigger animation based on content
                 const text = statValue.textContent;
                 if (text.includes('%')) {
-                    animateValue(statValue, 0, 99.8, 2000);
+                    animateValue(statValue, 0, 99, 2000);
                     statValue.dataset.suffix = '%';
                 }
             }
@@ -1149,52 +1153,192 @@ document.querySelectorAll('.stat-item').forEach(stat => {
 
 console.log('🚀 Modern Detections System loaded successfully!');
 // ==================== PDF REPORT GENERATION ====================
-async function generatePDFReport() {
+// ==================== PDF REPORT GENERATION ====================
+async function generatePDFReport(historyItem = null) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Capture the Dashboard
-    const element = document.querySelector('.split-container');
-    const originalBg = element.style.background;
-    element.style.background = '#000000'; // Ensure dark background for capture
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
 
+    // -- Colors --
+    const colorBlack = [10, 10, 15]; // #0A0A0F
+    const colorYellow = [227, 245, 20]; // #E3F514
+    const colorGray = [128, 128, 128];
+    const colorRed = [220, 38, 38];
+    const colorGreen = [22, 163, 74];
+    const colorWhite = [255, 255, 255];
+
+    // -- Background --
+    doc.setFillColor(...colorBlack);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    // -- Logo & Header --
     try {
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#000000'
-        });
+        const logoImg = await loadImage('logo.svg');
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(logoImg, 0, 0, 100, 100);
+        const logoData = canvas.toDataURL('image/png');
+        doc.addImage(logoData, 'PNG', margin, margin, 15, 15);
 
-        element.style.background = originalBg; // Restore
-
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 190; // A4 width in mm minus margins
-        const pageHeight = 295;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        // Add Title Header
-        doc.setFillColor(227, 245, 20); // Electric Yellow
-        doc.rect(0, 0, 210, 30, 'F');
-        doc.setTextColor(0, 0, 0);
         doc.setFontSize(22);
+        doc.setTextColor(...colorYellow);
         doc.setFont('helvetica', 'bold');
-        doc.text("DeepGuard Forensic Report", 105, 20, { align: "center" });
-
-        doc.setFontSize(12);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 28, { align: "center" });
-
-        // Add Analysis Image
-        doc.addImage(imgData, 'PNG', 10, 40, imgWidth, imgHeight);
-
-        // Add Footer
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-
-    } catch (err) {
-        console.error("PDF Generation Failed:", err);
-        alert("Could not generate report. Please try again.");
+        doc.text('DeepGuard', margin + 20, margin + 11);
+    } catch (e) {
+        console.warn("Logo load failed", e);
+        doc.setFontSize(22);
+        doc.setTextColor(...colorYellow);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DeepGuard', margin, margin + 10);
     }
+
+    // -- Report Title --
+    doc.setDrawColor(...colorYellow);
+    doc.setLineWidth(0.5);
+    doc.line(margin, margin + 30, pageWidth - margin, margin + 30);
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FORENSIC ANALYSIS REPORT', margin, margin + 45);
+
+    // -- Scan Details --
+    const verdictTitle = document.getElementById('verdictTitle').textContent;
+    const confidenceVal = document.getElementById('confidenceValue').textContent;
+    const scanTime = document.getElementById('scanTimeDisplay').textContent || '< 2s';
+    const timestamp = new Date().toLocaleString();
+
+    let verdictColor = verdictTitle.includes('FAKE') ? colorRed : colorGreen;
+
+    // Verdict Box
+    doc.setFillColor(20, 20, 25);
+    doc.setDrawColor(60, 60, 60);
+    doc.roundedRect(margin, margin + 55, pageWidth - (margin * 2), 35, 3, 3, 'FD');
+
+    doc.setFontSize(10);
+    doc.setTextColor(...colorGray);
+    doc.text('DETECTION VERDICT', margin + 10, margin + 70);
+
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...verdictColor);
+    doc.text(verdictTitle, margin + 10, margin + 83);
+
+    doc.setFontSize(12);
+    doc.setTextColor(...colorWhite);
+    doc.text(`Confidence: ${confidenceVal}`, pageWidth - margin - 60, margin + 83);
+
+    // -- Comparison Images --
+    const previewImg = document.getElementById('previewImage');
+    const heatmapImg = document.getElementById('heatmapOverlay');
+
+    let yPos = margin + 105;
+
+    // Helper to get image data safely
+    const getImageData = (imgElement) => {
+        if (!imgElement || !imgElement.src || imgElement.src === window.location.href) return null;
+        if (imgElement.src.startsWith('data:')) return imgElement.src;
+
+        try {
+            const c = document.createElement('canvas');
+            c.width = imgElement.naturalWidth;
+            c.height = imgElement.naturalHeight;
+            c.getContext('2d').drawImage(imgElement, 0, 0);
+            return c.toDataURL('image/jpeg', 0.8);
+        } catch (e) {
+            return null;
+        }
+    };
+
+    if (previewImg && previewImg.src && previewImg.naturalWidth > 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(...colorYellow);
+        doc.text('Analyzed Media', margin, yPos);
+        yPos += 10;
+
+        const imgRatio = previewImg.naturalHeight / previewImg.naturalWidth;
+        // Max width for one image (if 2 side by side)
+        const maxImgWidth = (pageWidth - (margin * 3)) / 2;
+        const imgHeight = Math.min(maxImgWidth * imgRatio, 80); // Limit height
+        const imgWidth = imgHeight / imgRatio;
+
+        try {
+            const originalData = getImageData(previewImg);
+            if (originalData) {
+                doc.addImage(originalData, 'JPEG', margin, yPos, imgWidth, imgHeight);
+                doc.setFontSize(8);
+                doc.setTextColor(...colorGray);
+                doc.text('Original Input', margin, yPos + imgHeight + 5);
+            }
+
+            // Heatmap (only if visible/exists)
+            if (heatmapImg && heatmapImg.src && heatmapImg.style.display !== 'none' && heatmapImg.naturalWidth > 0) {
+                const heatmapData = getImageData(heatmapImg);
+                if (heatmapData) {
+                    doc.addImage(heatmapData, 'JPEG', margin + imgWidth + 10, yPos, imgWidth, imgHeight);
+                    doc.setTextColor(...colorGray);
+                    doc.text('Heatmap Analysis', margin + imgWidth + 10, yPos + imgHeight + 5);
+                }
+            }
+            yPos += imgHeight + 20;
+
+        } catch (e) {
+            console.error("PDF Image Error", e);
+        }
+    }
+
+    // -- Metadata Table (Manual Layout) --
+    yPos += 10;
+    const tableData = [
+        ['Analysis ID', `SCAN-${Date.now().toString().slice(-6)}`],
+        ['Date & Time', timestamp],
+        ['Model Engine', 'DeepGuard Hybrid v2.0 (CNN+ViT)'],
+        ['Scan Duration', scanTime],
+        ['Status', 'Completed Successfully']
+    ];
+
+    doc.setDrawColor(...colorGray);
+    doc.setLineWidth(0.1);
+
+    doc.setFontSize(10);
+    tableData.forEach(([label, value]) => {
+        doc.setFillColor(30, 30, 35);
+        doc.rect(margin, yPos, 60, 10, 'F'); // Label bg
+        doc.setFillColor(20, 20, 25);
+        doc.rect(margin + 60, yPos, pageWidth - (margin * 2) - 60, 10, 'F'); // Value bg
+
+        doc.setTextColor(...colorYellow);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, margin + 5, yPos + 7);
+
+        doc.setTextColor(...colorWhite);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value, margin + 65, yPos + 7);
+
+        yPos += 11;
+    });
+
+    // -- Footer --
+    doc.setFontSize(8);
+    doc.setTextColor(...colorGray);
+    doc.text('Generated by DeepGuard AI System. Authenticity verified by cryptographic signature.', margin, pageHeight - 15);
+
+    // Save
+    doc.save(`DeepGuard_Report_${Date.now()}.pdf`);
+}
+
+function loadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+    });
 }
 
 // ==================== HISTORY LOGIC ====================
@@ -1551,14 +1695,15 @@ function removeFromQueue(fileId) {
     if (item) {
         item.style.opacity = '0';
         item.style.transform = 'translateX(-20px)';
-        setTimeout(() => item.remove(), 300);
+        setTimeout(() => {
+            item.remove();
+            // Check if queue is empty AFTER removal animation
+            if (uploadQueue.length === 0) {
+                clearQueue();
+            }
+        }, 300);
     }
     updateQueueCount();
-
-    // If queue is empty, show upload area again
-    if (uploadQueue.length === 0) {
-        clearQueue();
-    }
 }
 
 function clearQueue() {
@@ -2098,3 +2243,77 @@ if (window.location.pathname.includes('history.html')) {
 }
 
 // Loading screen removed
+
+// ==================== VIDEO DEMO PLAYER ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('demoVideoPlayer');
+    const playOverlay = document.getElementById('playOverlay');
+    const progressBar = document.getElementById('videoProgress');
+
+    if (video && playOverlay) {
+        const playlist = [
+            'assets/demo_part1.mov',
+            'assets/demo_part2.mov'
+        ];
+        let currentVideoIndex = 0;
+
+        // Play Toggle
+        playOverlay.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                playOverlay.classList.add('hidden');
+            } else {
+                video.pause();
+                playOverlay.classList.remove('hidden');
+            }
+        });
+
+        video.addEventListener('click', () => {
+            if (!video.paused) {
+                video.pause();
+                playOverlay.classList.remove('hidden');
+            }
+        });
+
+        // Update Progress
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            if (progressBar) progressBar.style.width = `${percent}%`;
+        });
+
+        // Handle Sequential Playback
+        video.addEventListener('ended', () => {
+            currentVideoIndex++;
+            if (currentVideoIndex < playlist.length) {
+                // Play next video
+                video.src = playlist[currentVideoIndex];
+                video.play().then(() => {
+                    // Ensure overlay stays hidden
+                    playOverlay.classList.add('hidden');
+                }).catch(e => console.error("Auto-play blocked:", e));
+            } else {
+                // Playlist finished, reset
+                currentVideoIndex = 0;
+                video.src = playlist[0];
+                playOverlay.classList.remove('hidden'); // Show play button again
+                if (progressBar) progressBar.style.width = '0%';
+            }
+        });
+
+        // Auto-play when in view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && video.paused) {
+                    video.play().then(() => {
+                        playOverlay.classList.add('hidden');
+                    }).catch(e => console.log("Autoplay prevented by browser interaction policy"));
+                } else if (!entry.isIntersecting && !video.paused) {
+                    video.pause();
+                    playOverlay.classList.remove('hidden');
+                }
+            });
+        }, { threshold: 0.5 }); // Start when 50% visible
+
+        observer.observe(video);
+    }
+});

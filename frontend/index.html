@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="showcase.css">
     <link rel="stylesheet" href="loader.css">
+    <link rel="stylesheet" href="video_player.css">
+    <link rel="stylesheet" href="extension.css">
 </head>
 
 <body>
@@ -23,7 +25,7 @@
     <div id="loader-wrapper">
         <!-- Brutalist Counter -->
         <div class="loader-content brutalist">
-            <div class="counter-wrapper">
+            <div class="counter-wrapper" style="color: #E3F514; opacity: 1; display: block;">
                 <span id="loader-percent">0</span><span class="percent-symbol">%</span>
             </div>
 
@@ -55,11 +57,12 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-content">
-                <div class="logo">
+                <a href="index.html" class="logo">
                     <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
                     <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
-                </div>
+                </a>
                 <ul class="nav-menu">
+                    <li><a href="index.html" class="active">Home</a></li>
                     <li><a href="analysis.html">Analysis</a></li>
                     <li><a href="history.html">History</a></li>
                 </ul>
@@ -98,8 +101,8 @@
 
             <!-- Fluid Hover Reveal Images -->
             <div class="hero-reveal-container" id="heroRevealContainer">
-                <img src="assets/vr-blue.png" alt="AI Detection Background" class="reveal-image reveal-bottom"
-                    id="hero-img-bg">
+                <!-- Background image removed as per user request -->
+
                 <img src="assets/gemini_reveal.png" alt="AI Detection Foreground" class="reveal-image reveal-top"
                     id="hero-img-reveal" style="display: none;"> <!-- Hidden, drawn by canvas -->
                 <canvas id="revealCanvas" class="reveal-canvas"></canvas>
@@ -122,14 +125,20 @@
                 </p>
                 <div class="hero-actions" data-aos="fade-up" data-aos-delay="300">
                     <a href="analysis.html" class="btn-hero-primary">Try Detection Now</a>
-                    <a href="analysis.html" class="btn-hero-secondary">
+                    <a href="#live-demo" class="btn-hero-secondary">
                         <span class="play-icon">▶</span>
                         Watch Demo
+                    </a>
+                    <a href="#extension" class="btn-hero-secondary"
+                        style="background: white; color: black; border-color: white;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
+                            alt="Chrome" style="width: 24px; height: 24px;">
+                        Get Extension
                     </a>
                 </div>
                 <div class="hero-stats" data-aos="zoom-in" data-aos-delay="400">
                     <div class="stat-item">
-                        <div class="stat-value">99.8%</div>
+                        <div class="stat-value">99%</div>
                         <div class="stat-label">Accuracy Rate</div>
                     </div>
                     <div class="stat-divider"></div>
@@ -139,13 +148,12 @@
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <div class="stat-value">
-                            < 2s</div>
-                                <div class="stat-label">Detection Time</div>
-                        </div>
+                        <div class="stat-value">&lt; 2s</div>
+                        <div class="stat-label">Detection Time</div>
                     </div>
                 </div>
             </div>
+        </div>
     </section>
 
     <!-- Section Divider (Wave) -->
@@ -156,6 +164,90 @@
                 class="shape-fill"></path>
         </svg>
     </div>
+
+    <!-- Live Demo Section -->
+    <section id="live-demo" class="video-demo-section" style="padding: 100px 0; position: relative; z-index: 5;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">See It In <span class="gradient-text">Action</span></h2>
+                <p class="section-subtitle">Watch DeepGuard analyze deepfakes in real-time</p>
+            </div>
+
+            <div class="video-window-container" data-aos="zoom-in-up">
+                <!-- Mac Window Header -->
+                <div class="window-header">
+                    <div class="window-controls">
+                        <span class="control red"></span>
+                        <span class="control yellow"></span>
+                        <span class="control green"></span>
+                    </div>
+                    <div class="window-title">DeepGuard Live Analysis - v2.0</div>
+                </div>
+
+                <!-- Video Player -->
+                <div class="video-content-wrapper">
+                    <video id="demoVideoPlayer" class="demo-video" muted playsinline width="100%">
+                        <source src="assets/demo_part1.mov" type="video/quicktime">
+                        <source src="assets/demo_part1.mov" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+
+                    <!-- Play Overlay -->
+                    <div class="play-overlay" id="playOverlay">
+                        <div class="play-button">▶</div>
+                    </div>
+
+                    <!-- Progress Bar (Fake OS look) -->
+                    <div class="video-progress-bar">
+                        <div class="progress-fill" id="videoProgress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Extension Showcase Section -->
+    <section id="extension" class="extension-section">
+        <div class="container">
+            <div class="extension-container">
+                <div class="extension-content" data-aos="fade-right">
+                    <div class="extension-badge">
+                        <span>●</span> Available for Chrome
+                    </div>
+                    <h2 class="extension-title">DeepGuard <span class="gradient-text">Everywhere</span></h2>
+                    <p class="extension-description">
+                        Detect deepfakes in real-time while you browse social media. Our browser extension automatically
+                        scans images on X, Instagram, and Reddit.
+                    </p>
+                    <a href="https://github.com/Harshvardhan-Asnade/Deepfake-Model/tree/main/extension"
+                        class="chrome-btn" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg"
+                            alt="Chrome" class="chrome-icon">
+                        Add to Chrome
+                    </a>
+                </div>
+
+                <div class="extension-visual" data-aos="fade-left">
+                    <div class="video-window-container" style="max-width: 100%;">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <span class="control red"></span>
+                                <span class="control yellow"></span>
+                                <span class="control green"></span>
+                            </div>
+                            <div class="window-title">DeepGuard Extension Preview</div>
+                        </div>
+                        <div class="video-content-wrapper">
+                            <video class="demo-video" autoplay muted loop playsinline width="100%">
+                                <source src="assets/extension_demo.mov" type="video/quicktime">
+                                <source src="assets/extension_demo.mov" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Features Section -->
     <section id="features" class="features-section">
@@ -171,11 +263,11 @@
                         <img src="deep_learning_icon.png" alt="Deep Learning"
                             style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
-                    <h3 class="feature-title">Deep Learning Models</h3>
-                    <p class="feature-description">Powered by state-of-the-art SigLIP architecture fine-tuned on
-                        millions of authentic and synthetic images</p>
+                    <h3 class="feature-title">Hybrid Fusion Architecture</h3>
+                    <p class="feature-description">Combines EfficientNetV2 for spatial details and Swin Transformer V2
+                        for global context with Frequency domain analysis.</p>
                     <div class="feature-tags">
-                        <span class="tag">Vision Transformer</span>
+                        <span class="tag">Hybrid CNN-ViT</span>
                         <span class="tag">Multi-Modal</span>
                     </div>
                 </div>
@@ -197,7 +289,7 @@
                         <img src="accuracy_icon.png" alt="Accuracy"
                             style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
-                    <h3 class="feature-title">99.8% Accuracy</h3>
+                    <h3 class="feature-title">99% Accuracy</h3>
                     <p class="feature-description">Industry-leading precision in detecting AI-generated and manipulated
                         media across various generation methods</p>
                     <div class="feature-tags">
@@ -232,28 +324,28 @@
             <div class="tech-grid">
                 <div class="tech-card" data-aos="zoom-in" data-aos-delay="100">
                     <div class="tech-icon">🧠</div>
-                    <h3>SigLIP Vision</h3>
-                    <p>Advanced vision-language model</p>
+                    <h3>EfficientNet V2</h3>
+                    <p>Spatial Feature Extraction</p>
                 </div>
                 <div class="tech-card" data-aos="zoom-in" data-aos-delay="200">
-                    <div class="tech-icon">🔥</div>
-                    <h3>PyTorch</h3>
-                    <p>Deep learning framework</p>
+                    <div class="tech-icon">🌪️</div>
+                    <h3>Swin Transformer</h3>
+                    <p>Global Context Attention</p>
                 </div>
                 <div class="tech-card" data-aos="zoom-in" data-aos-delay="300">
-                    <div class="tech-icon">🤗</div>
-                    <h3>Transformers</h3>
-                    <p>State-of-the-art NLP & CV</p>
+                    <div class="tech-icon">🌊</div>
+                    <h3>FFT Analysis</h3>
+                    <p>Frequency Domain Inspection</p>
                 </div>
                 <div class="tech-card" data-aos="zoom-in" data-aos-delay="400">
                     <div class="tech-icon">🐍</div>
-                    <h3>Python</h3>
-                    <p>Core programming language</p>
+                    <h3>Python & PyTorch</h3>
+                    <p>Core AI Framework</p>
                 </div>
                 <div class="tech-card" data-aos="zoom-in" data-aos-delay="500">
                     <div class="tech-icon">🎯</div>
-                    <h3>SafeTensors</h3>
-                    <p>Secure model storage</p>
+                    <h3>Patch Encoder</h3>
+                    <p>Local Artifact Detection</p>
                 </div>
             </div>
         </div>
@@ -351,41 +443,42 @@
                 <div class="model-header">
                     <div class="model-icon">🛡️</div>
                     <div>
-                        <h3 class="model-name">DeepGuard: SigLIP Detection Model</h3>
-                        <p class="model-version">Version 2.0 • Latest Release</p>
+                        <h3 class="model-name">DeepGuard: Hybrid Fusion v2.0</h3>
+                        <p class="model-version">EfficientNetV2 + SwinV2 + FFT Analysis</p>
                     </div>
                 </div>
                 <div class="model-stats-grid">
                     <div class="model-stat">
                         <div class="model-stat-label">Architecture</div>
-                        <div class="model-stat-value">Vision Transformer</div>
+                        <div class="model-stat-value">CNN + ViT Hybrid</div>
                     </div>
                     <div class="model-stat">
                         <div class="model-stat-label">Parameters</div>
-                        <div class="model-stat-value">400M+</div>
+                        <div class="model-stat-value">~55M</div>
                     </div>
                     <div class="model-stat">
-                        <div class="model-stat-label">Training Dataset</div>
-                        <div class="model-stat-value">5M Images</div>
+                        <div class="model-stat-label">Inference Time</div>
+                        <div class="model-stat-value">
+                            < 150ms</div>
+                        </div>
+                        <div class="model-stat">
+                            <div class="model-stat-label">Accuracy</div>
+                            <div class="model-stat-value">99%</div>
+                        </div>
                     </div>
-                    <div class="model-stat">
-                        <div class="model-stat-label">Accuracy</div>
-                        <div class="model-stat-value">99.8%</div>
-                    </div>
-                </div>
-                <div class="model-capabilities">
-                    <h4 class="capabilities-title">Detection Capabilities</h4>
-                    <div class="capabilities-grid">
-                        <span class="capability-badge">Face Swaps</span>
-                        <span class="capability-badge">AI Art Generation</span>
-                        <span class="capability-badge">Style Transfer</span>
-                        <span class="capability-badge">GAN Outputs</span>
-                        <span class="capability-badge">Diffusion Models</span>
-                        <span class="capability-badge">Video Frames</span>
+                    <div class="model-capabilities">
+                        <h4 class="capabilities-title">Detection Capabilities</h4>
+                        <div class="capabilities-grid">
+                            <span class="capability-badge">Face Swaps</span>
+                            <span class="capability-badge">AI Art Generation</span>
+                            <span class="capability-badge">Style Transfer</span>
+                            <span class="capability-badge">GAN Outputs</span>
+                            <span class="capability-badge">Diffusion Models</span>
+                            <span class="capability-badge">Video Frames</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
     </section>
 
     <!-- How It Works -->
@@ -413,8 +506,9 @@
                 <div class="pipeline-step">
                     <div class="step-number">03</div>
                     <div class="step-icon">🧮</div>
-                    <h3 class="step-title">Feature Extraction</h3>
-                    <p class="step-description">Extract and analyze thousands of visual features</p>
+                    <h3 class="step-title">Multi-Modal Fusion</h3>
+                    <p class="step-description">Analyzes frequency (FFT), local patches, and global context
+                        simultaneously</p>
                 </div>
                 <div class="pipeline-arrow">→</div>
                 <div class="pipeline-step">
@@ -427,7 +521,8 @@
         </div>
     </section>
 
-    <!-- Demo Section Removed - Moved to analysis.html -->
+    <!-- Live Demo Section -->
+    <!-- Demo Section Removed - Moved to top -->
 
     <!-- CTA Section -->
     <section class="cta-section">
@@ -436,7 +531,7 @@
                 <h2 class="cta-title">Ready to Protect Against Deepfakes?</h2>
                 <p class="cta-description">Join thousands of users trusting our AI-powered detection system</p>
                 <div class="cta-actions">
-                    <button class="btn-cta-primary">Get Started Free</button>
+                    <a href="analysis.html" class="btn-cta-primary">Get Started Free</a>
                     <button class="btn-cta-secondary">Contact Sales</button>
                 </div>
             </div>

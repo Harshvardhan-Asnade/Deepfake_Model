@@ -140,7 +140,9 @@ def predict_image(image_path):
         heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
         
         # Superimpose
-        superimposed_img = heatmap * 0.4 + image * 0.6
+        # Heatmap is BGR (from cv2), Image is RGB. Convert Image to BGR.
+        image_bgr = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        superimposed_img = heatmap * 0.4 + image_bgr * 0.6
         superimposed_img = np.clip(superimposed_img, 0, 255).astype(np.uint8)
         
         # Encode to Base64

@@ -26,7 +26,18 @@ const initLoader = () => {
     const targetProgress = 100;
     let currentStatus = 0;
     const startTime = Date.now();
-    const minimumDuration = 5000; // 5 seconds minimum
+    const minimumDuration = 2500; // 2.5 seconds (Optimized for better UX)
+
+    // Safety Timeout - Force remove loader after 7 seconds if it gets stuck
+    setTimeout(() => {
+        if (loaderWrapper && loaderWrapper.style.display !== 'none' && !loaderWrapper.classList.contains('loaded')) {
+            console.warn("Loader safety timeout triggered - forcing removal.");
+            loaderWrapper.classList.add('loaded');
+            setTimeout(() => {
+                loaderWrapper.style.display = 'none';
+            }, 800);
+        }
+    }, 7000);
 
     // Real/Fake Status Messages
     const statusMessages = [
