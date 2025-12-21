@@ -62,7 +62,7 @@ def load_model():
     
     checkpoint_dir = Config.CHECKPOINT_DIR
     # Explicitly target the model requested by the user
-    target_model_name = "best_finetuned_datasetB.safetensors"
+    target_model_name = "patched_model.safetensors"
     checkpoint_path = os.path.join(checkpoint_dir, target_model_name)
     
     print(f"Using device: {device}")

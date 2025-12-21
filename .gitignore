@@ -3,3 +3,4 @@ uploads/
 __pycache__/
 .DS_Store
 *.pyc
+database.db

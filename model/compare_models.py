@@ -37,8 +37,8 @@ print(f"✅ Found {len(fake_images)} FAKE images\n")
 
 # Models to test
 models_to_test = {
-    'Original (Dataset A only)': 'results/checkpoints/best_model.safetensors',
-    'Fine-tuned (Dataset A + B)': 'results/checkpoints/best_finetuned_datasetB.safetensors',
+    'Fine-tuned (Dataset A + B)': 'model/results/checkpoints/best_finetuned_datasetB.safetensors',
+    'Best (Largest Dataset)': 'model/results/checkpoints/best_finetuned_largest.safetensors',
 }
 
 print("="*90)

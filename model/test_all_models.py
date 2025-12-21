@@ -20,14 +20,11 @@ transform = A.Compose([
 ])
 
 # Test images
-images_paths = ['test_images/image1.jpg', 'test_images/image2.jpg', 'test_images/image3.jpg']
+images_paths = ['model/test_images/image1.jpg', 'model/test_images/image2.jpg', 'model/test_images/image3.jpg']
 checkpoints = {
-    'Best Model (Dataset A)': 'results/checkpoints/best_model.safetensors',
-    'Best Finetuned (Dataset B)': 'results/checkpoints/best_finetuned_datasetB.safetensors',
-    'Finetuned Dataset B - Epoch 1': 'results/checkpoints/finetuned_datasetB_ep1.safetensors',
-    'Best Finetuned (Dataset C)': 'results/checkpoints/best_finetuned_datasetC.safetensors',
-    'Finetuned Dataset C - Epoch 1': 'results/checkpoints/finetuned_datasetC_ep1.safetensors',
-    'Finetuned Dataset C - Epoch 2': 'results/checkpoints/finetuned_datasetC_ep2.safetensors',
+    'Fine-tuned (Dataset B)': 'model/results/checkpoints/best_finetuned_datasetB.safetensors',
+    'Best (Largest Dataset)': 'model/results/checkpoints/best_finetuned_largest.safetensors',
+    'Patched Model': 'model/results/checkpoints/patched_model.safetensors',
 }
 
 print("\n" + "="*90)
@@ -39,12 +36,20 @@ for ckpt_name, ckpt_path in checkpoints.items():
     print(f"\n🔹 Testing: {ckpt_name}")
     print("─" * 90)
     
+    if not os.path.exists(ckpt_path):
+        print(f"❌ Checkpoint not found: {ckpt_path}")
+        continue
+
     # Load model
     model = DeepfakeDetector(pretrained=False).to(device)
     model.eval()
     
     from safetensors.torch import load_model
-    load_model(model, ckpt_path, strict=False)
+    try:
+        load_model(model, ckpt_path, strict=False)
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        continue
     
     # Test all images
     print(f"{'Image':<20} | {'Prediction':<15} | {'Confidence':<15} | {'Fake Probability'}")

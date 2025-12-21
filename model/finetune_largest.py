@@ -20,17 +20,17 @@ except ImportError:
     SAFETENSORS_AVAILABLE = False
     print("Warning: safetensors not installed. Checkpoints will be saved as .pt")
 
-def finetune_datasetb():
+def finetune_largest():
     # Setup
     Config.setup()
     device = torch.device(Config.DEVICE)
     
-    # Dataset B paths
-    TRAIN_PATH = "/Users/harshvardhan/Developer/dataset/DataSet B/Train"
-    VAL_PATH = "/Users/harshvardhan/Developer/dataset/DataSet B/Validation"
+    # Largest Dataset paths
+    TRAIN_PATH = "/Users/harshvardhan/Developer/dataset/Largest Dataset/Train"
+    VAL_PATH = "/Users/harshvardhan/Developer/dataset/Largest Dataset/Validation"
     
     print(f"\n{'='*80}")
-    print("FINE-TUNING ON DATASET B (140K IMAGES)")
+    print("FINE-TUNING ON LARGEST DATASET")
     print(f"{'='*80}\n")
     
     # --- Data Loading ---
@@ -50,39 +50,40 @@ def finetune_datasetb():
                             pin_memory=True if device.type=='cuda' else False,
                             persistent_workers=True if Config.NUM_WORKERS > 0 else False)
     
-    # Load pre-trained model from Dataset A
-    print("\n🔄 Loading best model from Dataset A...")
+    # Load model
+    print("\n🔄 Loading previous best model...")
     model = DeepfakeDetector(pretrained=False).to(device)
     
-    # Load pre-trained model
-    print("\n🔄 Loading checkpoint if available...")
-    model = DeepfakeDetector(pretrained=False).to(device)
+    # Determine which checkpoint to load
+    # Priority: 1. Largest Dataset Checkpoint (resume) -> 2. Dataset B (transfer) -> 3. Dataset A (transfer)
     
-    # Check for previous Dataset B checkpoint first, to resume training
-    checkpoint_name = "best_finetuned_datasetB.safetensors"
-    checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, checkpoint_name)
+    checkpoints_to_try = [
+        "best_finetuned_largest.safetensors",       # Resume self
+        "best_finetuned_datasetB.safetensors",      # Transfer from B
+        "best_model.safetensors"                    # Transfer from A
+    ]
     
-    if os.path.exists(checkpoint_path):
-        load_model(model, checkpoint_path, strict=False)
-        print(f"✅ Resuming from checkpoint: {checkpoint_path}")
-    else:
-        # Fallback to Dataset A model if available
-        checkpoint_name = "best_model.safetensors"
-        checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, checkpoint_name)
-        if os.path.exists(checkpoint_path):
-            load_model(model, checkpoint_path, strict=False)
-            print(f"✅ Loaded base model: {checkpoint_path}")
-        else:
-            print("⚠️ No checkpoint found! Starting from random weights.")
+    loaded = False
+    for ckpt_name in checkpoints_to_try:
+        ckpt_path = os.path.join(Config.CHECKPOINT_DIR, ckpt_name)
+        if os.path.exists(ckpt_path):
+            load_model(model, ckpt_path, strict=False)
+            print(f"✅ Loaded checkpoint: {ckpt_name}")
+            loaded = True
+            break
+            
+    if not loaded:
+        print("⚠️ No checkpoint found! Starting from random weights (Not recommended for fine-tuning).")
     
     model.to(device)
     
-    # Optimization with LOWER learning rate for fine-tuning
-    FINETUNE_LR = 5e-6  # Very low for fine-tuning on large dataset
-    FINETUNE_EPOCHS = 1  # Start with 1 epoch to test
+    # Optimization settings
+    # Slightly higher LR than B because this dataset is presumably diverse and large
+    FINETUNE_LR = 1e-5 
+    FINETUNE_EPOCHS = 1
     
     print(f"\n📝 Fine-tuning settings:")
-    print(f"   Learning Rate: {FINETUNE_LR} (very low for fine-tuning)")
+    print(f"   Learning Rate: {FINETUNE_LR}")
     print(f"   Epochs: {FINETUNE_EPOCHS}")
     print(f"   Batch Size: {Config.BATCH_SIZE}")
     print(f"   Train samples: {len(train_dataset)}")
@@ -90,7 +91,7 @@ def finetune_datasetb():
     
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.AdamW(model.parameters(), lr=FINETUNE_LR, weight_decay=Config.WEIGHT_DECAY)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2)
     
     # Loop
     best_acc = 0.0
@@ -123,26 +124,28 @@ def finetune_datasetb():
         train_acc = train_correct / train_total if train_total > 0 else 0
         print(f"\nEpoch {epoch+1} Train Loss: {train_loss/len(train_loader):.4f} Acc: {train_acc:.4f}")
         
-        # Save checkpoint after every epoch
-        save_checkpoint(model, epoch+1, train_acc, name=f"finetuned_datasetB_ep{epoch+1}")
+        # Save periodic checkpoint
+        save_checkpoint(model, epoch+1, train_acc, name=f"finetuned_largest_ep{epoch+1}")
         
         # Validation
         if len(val_dataset) > 0:
             val_loss, val_acc = validate(model, val_loader, criterion, device)
             print(f"Epoch {epoch+1} Val Loss: {val_loss:.4f} Acc: {val_acc:.4f}")
             
-            # Save best model if validation accuracy improved
+            scheduler.step(val_acc)
+            
+            # Save best model
             if val_acc > best_acc:
                 best_acc = val_acc
                 print(f"⭐ New best model! Validation Accuracy: {val_acc:.4f}")
-                save_checkpoint(model, epoch+1, val_acc, name="best_finetuned_datasetB")
-        
-        scheduler.step()
+                save_checkpoint(model, epoch+1, val_acc, name="best_finetuned_largest")
+        else:
+             scheduler.step(train_acc)
+
     
     print(f"\n🎉 Fine-tuning Complete!")
     print(f"Best Validation Accuracy: {best_acc:.4f}")
     print(f"\n💾 Checkpoints saved in: results/checkpoints/")
-    print(f"\n🔍 Next: Test on Dataset B Test set to see final performance!")
 
 def validate(model, loader, criterion, device):
     model.eval()
@@ -181,4 +184,4 @@ def save_checkpoint(model, epoch, acc, name="checkpoint"):
         torch.save(state_dict, path.replace(".safetensors", ".pth"))
 
 if __name__ == "__main__":
-    finetune_datasetb()
+    finetune_largest()
