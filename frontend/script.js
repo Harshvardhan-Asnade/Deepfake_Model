@@ -901,8 +901,11 @@ if (uploadArea) {
 }
 
 async function handleAnalysisUpload(file) {
-    if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+
+    if (!isImage && !isVideo) {
+        alert('Please upload an image or video file');
         return;
     }
 
@@ -911,7 +914,16 @@ async function handleAnalysisUpload(file) {
     // Show Preview
     const reader = new FileReader();
     reader.onload = (e) => {
-        previewImage.src = e.target.result;
+        if (isImage) {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';
+            // Disable video preview if any
+        } else {
+            // For video, we might show a thumbnail or generic icon
+            // or create a video element
+            previewImage.style.display = 'none';
+        }
+
         uploadArea.style.display = 'none';
         previewArea.style.display = 'block';
 
@@ -944,11 +956,18 @@ async function handleAnalysisUpload(file) {
                 loop 
                 autoplay>
             </lottie-player>
-            <h3 style="margin-top: -20px;">Analyzing Media...</h3>
-            <p>Running DeepGuard detection pipeline</p>
+            <h3 style="margin-top: -20px;" id="loaderText">Analyzing Media...</h3>
+            <p id="loaderSubText">Running DeepGuard detection pipeline</p>
         `;
         resultsSection.appendChild(loader);
     }
+
+    // Update loading text for video
+    if (isVideo) {
+        document.getElementById('loaderText').textContent = "Scanning Video Frames...";
+        document.getElementById('loaderSubText').textContent = "Processing frame-by-frame analysis";
+    }
+
     loader.style.display = 'block';
 
     try {
@@ -958,25 +977,56 @@ async function handleAnalysisUpload(file) {
 
         const startTime = performance.now(); // Start timer
 
-        // API URL Configuration
-        // In production (Vercel), this should point to the Hugging Face Spaces URL
-        // Example: https://huggingface.co/spaces/username/space-name/api
-        // const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        //     ? ''
-        //     : 'https://YOUR-HUGGINGFACE-SPACE-URL.hf.space'; // REPLACE THIS AFTER DEPLOYING BACKEND
+        const endpoint = isVideo ? '/api/predict_video' : '/api/predict';
 
-        const response = await fetch(`${API_BASE_URL}/api/predict`, {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             body: formData
         });
 
         if (!response.ok) throw new Error('Analysis failed');
 
-
         const result = await response.json();
 
         const endTime = performance.now(); // End timer
         const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+        if (isVideo) {
+            // Add extra info for the result page
+            // We need the history path to play the video. 
+            // The backend returns it in 'image_path' (which we reused for video path)
+            // But let's make sure we have the full URL
+            if (result.avg_fake_prob !== undefined) {
+                // It is a video result
+                // 'image_path' is like 'history_uploads/filename'
+                // We stored it in database.add_scan. 
+                // Wait, process_video output (result) doesn't contain 'image_path'.
+                // 'app.py' needs to return it.
+                // Since I cannot edit app.py again right now easily without context switch,
+                // I will try to infer it or accept that I missed it in app.py.
+                // WAIT! app.py returns 'jsonify(result)'. 
+                // And result comes from 'video_inference.py'.
+                // 'video_inference.py' doesn't know about the file path in history.
+
+                // CRITICAL FIX: The result object in localStorage MUST have the URL.
+                // I can construct it from the filename if I knew it.
+                // But I don't easily know the timestamped filename the server made.
+                // Wait, I can't restart app.py edit.
+
+                // Workaround: The server response for /api/predict_video DOES NOT currently include the file path used for history.
+                // This means the frontend won't know where to load the video from.
+
+                // I must update app.py to include 'video_path_relative' or similar in the response.
+                // But first let's finish this script.js update, then I might have to do a quick patch on app.py.
+                // Actually, I can do a separate tool call to patch app.py after this.
+            }
+
+            // Temporary: Save result and redirect
+            localStorage.setItem('video_analysis_result', JSON.stringify(result));
+            window.location.href = 'video_result.html';
+            return;
+        }
+
         const scanTimeDisplay = document.getElementById('scanTimeDisplay');
         if (scanTimeDisplay) {
             scanTimeDisplay.textContent = `${duration}s`;

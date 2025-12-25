@@ -8,6 +8,7 @@ import random
 import ssl
 # Disable SSL verification for downloading pretrained weights
 ssl._create_default_https_context = ssl._create_unverified_context
+from torch.cuda.amp import GradScaler, autocast
 
 from src.config import Config
 from src.models import DeepfakeDetector
@@ -69,31 +70,66 @@ def train():
     # Optimization
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.AdamW(model.parameters(), lr=Config.LEARNING_RATE, weight_decay=Config.WEIGHT_DECAY)
+    # Optimization
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=Config.LEARNING_RATE, weight_decay=Config.WEIGHT_DECAY)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    
+    # Enable AMP only for CUDA (Windows NVIDIA)
+    use_amp = (Config.DEVICE == 'cuda')
+    scaler = GradScaler() if use_amp else None
+    if use_amp:
+        print("🚀 Mixed Precision (AMP) Enabled for RTX GPU")
+    else:
+        print("🐌 Standard Precision (No AMP) for CPU/MPS")
     
     # Resume from checkpoint if exists
     start_epoch = 0
     best_acc = 0.0
+    
+    # Priority:
+    # 1. best_model.safetensors (if we crashed mid-training)
+    # 2. patched_model.safetensors (the model we want to improve)
+    
     resume_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
     if not os.path.exists(resume_path):
-        resume_path = resume_path.replace(".safetensors", ".pth")
+        # Look for latest epoch checkpoint
+        import glob
+        import re
+        checkpoints = glob.glob(os.path.join(Config.CHECKPOINT_DIR, "checkpoint_ep*.safetensors"))
+        if checkpoints:
+            # Sort by epoch number
+            def get_epoch(p):
+                match = re.search(r"checkpoint_ep(\d+)", p)
+                return int(match.group(1)) if match else 0
+            
+            latest_ckpt = max(checkpoints, key=get_epoch)
+            resume_path = latest_ckpt
+            start_epoch = get_epoch(latest_ckpt)
+            print(f"🔄 Auto-Resuming from latest epoch: {start_epoch}")
+        else:
+            resume_path = os.path.join(Config.CHECKPOINT_DIR, "patched_model.safetensors")
     
     if os.path.exists(resume_path):
         print(f"\n🔄 Found existing checkpoint: {resume_path}")
-        response = input("Resume training from this checkpoint? (y/n): ").strip().lower()
-        if response == 'y':
+        print("Auto-resuming to FINETUNE this model...")
+        
+        try:
             if resume_path.endswith(".safetensors") and SAFETENSORS_AVAILABLE:
                 state_dict = load_file(resume_path)
             else:
                 state_dict = torch.load(resume_path, map_location=device)
-            model.load_state_dict(state_dict)
-            print("✅ Resumed from checkpoint. Starting from where you left off.")
-            # Note: We don't track epoch number in checkpoint, so we continue counting from 0
-            # If you want to track epoch, we'd need to save optimizer state too
+            
+            # Use strict=False to allow for minor architecture changes or missing keys
+            model.load_state_dict(state_dict, strict=False)
+            print("✅ Weights loaded. Starting Fine-Tuning.")
+        except Exception as e:
+            print(f"⚠ Failed to load checkpoint: {e}")
+            print("Starting from ImageNet weights.")
     
     # Loop
     
-    for epoch in range(Config.EPOCHS):
+    for epoch in range(start_epoch, Config.EPOCHS):
         model.train()
         train_loss = 0.0
         train_correct = 0
@@ -105,10 +141,21 @@ def train():
             labels = labels.to(device).unsqueeze(1)
             
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            
+            if use_amp:
+                with autocast():
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                # Standard training for Mac/CPU
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
             
             train_loss += loss.item()
             preds = (torch.sigmoid(outputs) > 0.5).float()
@@ -172,6 +219,30 @@ def save_checkpoint(model, epoch, acc, best=False):
             from safetensors.torch import save_model
             save_model(model, path)
             print(f"Saved Checkpoint: {path}")
+            
+            # 📝 Auto-Log to History
+            try:
+                from datetime import datetime
+                log_path = os.path.join(Config.PROJECT_ROOT, "TRAINING_HISTORY.md")
+                timestamp = datetime.now().strftime("%Y-%m-%d | %I:%M %p")
+                
+                # Create file with header if doesn't exist
+                if not os.path.exists(log_path):
+                    with open(log_path, "w", encoding="utf-8") as f:
+                        f.write("# 📜 Training History Log\n\n")
+                        f.write("| Date | Time | Model Name | Dataset | Epochs | Accuracy | Loss | Status |\n")
+                        f.write("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n")
+                
+                # Append Entry
+                with open(log_path, "a", encoding="utf-8") as f:
+                    # Format: Date | Time | Name | Dataset | Epoch | Acc | Loss | Status
+                    dataset_name = os.path.basename(Config.DATA_DIR)
+                    entry = f"| **{timestamp.split(' | ')[0]}** | {timestamp.split(' | ')[1]} | {filename} | {dataset_name} | {epoch} | {acc*100:.2f}% | N/A | ✅ Saved |\n"
+                    f.write(entry)
+                    print(f"📝 Logged to TRAINING_HISTORY.md")
+            except Exception as e:
+                print(f"⚠️ Failed to write log: {e}")
+
         except Exception as e:
             # Fallback to regular torch save if safetensors fails
             print(f"SafeTensors save failed ({e}), falling back to .pth format")

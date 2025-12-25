@@ -48,13 +48,14 @@ class DeepfakeDataset(Dataset):
             for file in files:
                 if file.lower().endswith(exts):
                     path = os.path.join(root, file)
-                    # Label inference based on folder names
-                    parent = os.path.basename(root).lower()
+                    # Label inference based on full path
+                    path_lower = path.lower()
                     
                     label = None
-                    if "real" in parent:
+                    # Prioritize explicit folder names
+                    if "real" in path_lower:
                         label = 0.0
-                    elif any(x in parent for x in ["fake", "df", "synthesis", "generated", "ai"]):
+                    elif any(x in path_lower for x in ["fake", "df", "synthesis", "generated", "ai"]):
                         label = 1.0
                     
                     if label is not None:

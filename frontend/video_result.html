@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis Results - DeepGuard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .video-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .frame-list {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-top: 1rem;
+        }
+
+        .frame-item {
+            min-width: 120px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .frame-time {
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .suspicious-tag {
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-transition-overlay"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">
+                <img src="logo.svg" alt="DeepGuard Logo" class="logo-icon">
+                <span class="logo-text">DeepGuard</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="history.html" class="nav-link">History</a>
+                <a href="index.html#features" class="nav-link">Features</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 100px;">
+        <div class="results-header">
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Analyze Another File</a>
+            <h1>Video Analysis Report</h1>
+        </div>
+
+        <!-- Verdict Section -->
+        <div class="verdict-card" id="verdictCard">
+            <div class="verdict-icon">
+                <i class="fas fa-video"></i>
+            </div>
+            <div class="verdict-info">
+                <h2 id="verdictTitle">ANALYZING...</h2>
+                <div class="confidence-meter">
+                    <div class="meter-bar">
+                        <div class="meter-fill" id="confidenceBar" style="width: 0%"></div>
+                    </div>
+                    <span id="confidenceValue">0% Confidence</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="video-container">
+            <video id="videoPlayer" controls>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- Timeline Analysis -->
+        <div class="timeline-container">
+            <h3><i class="fas fa-wave-square"></i> Frame-by-Frame Analysis</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Timeline showing the probability of manipulation detected in sampled frames.
+            </p>
+            <div class="chart-wrapper">
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Analysis Details -->
+        <div class="details-grid">
+            <div class="detail-card">
+                <h3>Scan Statistics</h3>
+                <ul class="stats-list" id="statsList">
+                    <li><span>Duration:</span> <span id="videoDuration">--</span></li>
+                    <li><span>Frames Processed:</span> <span id="framesProcessed">--</span></li>
+                    <li><span>Suspicious Frames:</span> <span id="suspiciousCount">--</span></li>
+                    <li><span>Avg Fake Probability:</span> <span id="avgProb">--</span></li>
+                </ul>
+            </div>
+
+            <div class="detail-card">
+                <h3>Detection Notes</h3>
+                <p id="analysisNotes" style="color: var(--text-secondary); line-height: 1.6;">
+                    Loading analysis details...
+                </p>
+                <button id="downloadReportBtn" class="btn-primary" style="margin-top: 1rem; width: 100%;">
+                    <i class="fas fa-file-pdf"></i> Download Forensic Report
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Retrieve results from localStorage
+            const resultData = localStorage.getItem('video_analysis_result');
+
+            if (!resultData) {
+                alert('No analysis results found. Redirecting to home.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const result = JSON.parse(resultData);
+
+            // 1. Setup Video Player (if we have a URL, otherwise we rely on user just seeing the results)
+            // Ideally, we would have the video URL.
+            // Since we don't have a persistent URL for the uploaded file unless we returned it from backend,
+            // we might need to rely on the 'history_uploads' path if we want to play it.
+            // But 'history_uploads' path is relative. Let's construct it.
+            // We need to fetch the video source.
+            // If the backend returned 'image_path' (which is actually the video path), we can use that.
+
+            // Wait, we need to know the video URL.
+            // The backend returns 'image_path': 'history_uploads/filename'.
+            // This is served by 'app.py' via static folder or specific route.
+            // In app.py: @app.route('/history_uploads/<path:filename>')
+
+            // Let's check if the result has 'current_video_url' (we can set this in script.js before redirect)
+            // Or use the one from backend.
+
+            // Actually, script.js has the file object before upload.
+            // Using a blob URL passed via localStorage is impossible (blobs expire).
+            // So we MUST use the server URL.
+
+            // Backend result should correspond to what we saved.
+            // We saved: database.add_scan(..., image_path=relative_path)
+            // But the 'result' object returned to frontend is what 'video_inference.py' returns.
+            // 'video_inference.py' does NOT return the file path currently.
+            // Let's look at `app.py` again.
+            // It sends back `jsonify(result)`.
+            // We should append the `image_path` to the result in `app.py` so frontend knows where to play it from.
+
+            // FIX: I will assume for now I can reconstruct it or that I made a mistake in app.py not sending it back.
+            // In app.py, I returned `result` directly.
+            // I should update frontend logic to expect the path or handle it.
+
+            // For now, let's try to populate the UI.
+
+            populateUI(result);
+        });
+
+        function populateUI(result) {
+            // Verdict
+            const isFake = result.prediction === 'FAKE';
+            const title = document.getElementById('verdictTitle');
+            const bar = document.getElementById('confidenceBar');
+            const val = document.getElementById('confidenceValue');
+            const card = document.getElementById('verdictCard');
+
+            title.textContent = isFake ? 'FAKE VIDEO DETECTED' : 'AUTHENTIC VIDEO';
+            title.style.color = isFake ? 'var(--accent-red)' : 'var(--accent-green)'; // Define red if missing
+            if (isFake) title.style.color = '#ff3333';
+            else title.style.color = '#10B981';
+
+            const conf = (result.confidence * 100).toFixed(1);
+            bar.style.width = `${conf}%`;
+            bar.className = `meter-fill ${isFake ? 'fill-fake' : 'fill-real'}`;
+            // Hack for color
+            bar.style.backgroundColor = isFake ? '#ff3333' : '#10B981';
+
+            val.textContent = `${conf}% Confidence`;
+
+            // Stats
+            document.getElementById('videoDuration').textContent = `${result.duration.toFixed(1)}s`;
+            document.getElementById('framesProcessed').textContent = result.processed_frames;
+            document.getElementById('suspiciousCount').textContent = result.suspicious_frames.length;
+            document.getElementById('avgProb').textContent = `${(result.avg_fake_prob * 100).toFixed(1)}%`;
+
+            // Notes
+            const notes = document.getElementById('analysisNotes');
+            if (isFake) {
+                notes.innerHTML = `
+                    <strong style="color: #ff3333">⚠️ Manipulation Detected</strong><br>
+                    High probability of synthetic frames found. The model detected artifacts consistent with deepfake generation techniques in ${result.fake_frame_ratio ? (result.fake_frame_ratio * 100).toFixed(0) : 0}% of the sampled frames.
+                `;
+            } else {
+                notes.innerHTML = `
+                    <strong style="color: #10B981">✓ Authentic Media</strong><br>
+                    No significant signs of manipulation were detected. Frame consistency is high.
+                `;
+            }
+
+            // Chart
+            if (result.timeline) {
+                renderChart(result.timeline);
+            }
+
+            // Video Source
+            // If we have 'video_path' in localStorage (set by script.js via response) or construct it
+            // We'll handle this in script.js by adding the path to the result object before saving.
+            const player = document.getElementById('videoPlayer');
+            if (result.video_url) {
+                player.src = result.video_url;
+            }
+        }
+
+        function renderChart(timeline) {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            const times = timeline.map(t => t.time);
+            const probs = timeline.map(t => t.prob);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: times,
+                    datasets: [{
+                        label: 'Fake Probability',
+                        data: probs,
+                        borderColor: '#E3F514',
+                        backgroundColor: 'rgba(227, 245, 20, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1.0,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#888' }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: '#888', maxTicksLimit: 10 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: (ctx) => `Probability: ${(ctx.raw * 100).toFixed(1)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -15,6 +15,7 @@ import base64
 from werkzeug.utils import secure_filename
 import io
 from PIL import Image
+from src import video_inference
 
 # Disable SSL verification
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -36,7 +37,7 @@ CORS(app)
 
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'mp4', 'avi', 'mov', 'webm'}
 HISTORY_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'history_uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(HISTORY_FOLDER, exist_ok=True)
@@ -62,7 +63,7 @@ def load_model():
     
     checkpoint_dir = Config.CHECKPOINT_DIR
     # Explicitly target the model requested by the user
-    target_model_name = "patched_model.safetensors"
+    target_model_name = "best_model.safetensors"
     checkpoint_path = os.path.join(checkpoint_dir, target_model_name)
     
     print(f"Using device: {device}")
@@ -241,6 +242,75 @@ def predict():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/predict_video', methods=['POST'])
+def predict_video():
+    """Handle video upload and prediction"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+            
+        if not allowed_file(file.filename):
+             return jsonify({'error': 'Invalid file type'}), 400
+             
+        # Save file
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Process Video
+        # Note: process_video needs sys.path to be correct to import models inside it if it was standalone,
+        # but here we pass the already loaded 'model' object.
+        if model is None:
+             return jsonify({'error': 'Model not loaded'}), 500
+             
+        result = video_inference.process_video(filepath, model, transform, device)
+        
+        if "error" in result:
+             return jsonify(result), 500
+             
+        # Save to History (Using the first frame or a placeholder icon for now?)
+        # For video, we might want to save the video file itself to history_uploads
+        # or just a thumbnail. Let's save the video for now.
+        import shutil
+        history_filename = f"scan_{int(datetime.datetime.now().timestamp())}_{filename}"
+        history_path = os.path.join(HISTORY_FOLDER, history_filename)
+        shutil.copy(filepath, history_path)
+        
+        relative_path = f"history_uploads/{history_filename}"
+        
+        # Add to database
+        # Note: The database 'add_scan' might expect image-specific fields.
+        # We'll re-use 'fake_prob' as 'avg_fake_prob'
+        database.add_scan(
+            filename=filename,
+            prediction=result['prediction'],
+            confidence=result['confidence'],
+            fake_prob=result['avg_fake_prob'],
+            real_prob=1 - result['avg_fake_prob'],
+            image_path=relative_path 
+        )
+        
+        # Clean up
+        try:
+            os.remove(filepath)
+        except:
+            pass
+            
+        # Add video URL for frontend playback
+        result['video_url'] = relative_path
+        
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Video Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/history', methods=['GET'])
 def get_history():
