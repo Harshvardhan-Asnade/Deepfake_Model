@@ -11,6 +11,9 @@ import os
 import glob
 from tqdm import tqdm
 
+import argparse
+import sys
+
 # Force Windows/CUDA settings
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"🚀 Using device: {device}")
@@ -22,14 +25,31 @@ transform = A.Compose([
     ToTensorV2(),
 ])
 
+# Argument Parsing
+parser = argparse.ArgumentParser(description="Evaluate model on a custom dataset.")
+parser.add_argument("--dataset_dir", type=str, required=True, help="Path to the dataset directory containing 'Real' and 'Fake' (or lowercase) subdirectories.")
+parser.add_argument("--model_path", type=str, default=None, help="Path to the model checkpoint to evaluate.")
+args = parser.parse_args()
+
 # TARGET DATASET
-# User requested path:
-test_dir = r"C:\Users\kanna\Downloads\Dataset\Largest Dataset\Largest Dataset\Train"
+test_dir = args.dataset_dir
 
 # Get all images with labels
 print(f"📂 Scanning directory: {test_dir}")
-real_images = glob.glob(os.path.join(test_dir, "Real", "*.*"))
-fake_images = glob.glob(os.path.join(test_dir, "Fake", "*.*"))
+
+# Check for both capitalized and lowercase folder names
+real_dirs = [os.path.join(test_dir, "Real"), os.path.join(test_dir, "real"), os.path.join(test_dir, "Real 2"), os.path.join(test_dir, "real 2")]
+fake_dirs = [os.path.join(test_dir, "Fake"), os.path.join(test_dir, "fake"), os.path.join(test_dir, "Fake 2"), os.path.join(test_dir, "fake 2")]
+
+real_images = []
+for d in real_dirs:
+    if os.path.isdir(d):
+         real_images.extend(glob.glob(os.path.join(d, "**", "*.*"), recursive=True))
+
+fake_images = []
+for d in fake_dirs:
+    if os.path.isdir(d):
+        fake_images.extend(glob.glob(os.path.join(d, "**", "*.*"), recursive=True))
 
 # Filter extensions
 exts = ('.png', '.jpg', '.jpeg', '.webp')
@@ -41,8 +61,8 @@ print(f"✅ Found {len(fake_images)} FAKE images")
 total_images = len(real_images) + len(fake_images)
 
 if total_images == 0:
-    print("❌ Error: No images found! Check the path.")
-    exit()
+    print(f"❌ Error: No images found in {test_dir}! Check the path and ensure it has 'Real'/'Fake' or 'real'/'fake' subdirectories.")
+    sys.exit(1)
 
 # LIMIT FOR SPEED (User might not want to wait for 180k images)
 # Let's test 1000 of each for a quick report, or all if user wants.
@@ -61,7 +81,10 @@ if len(fake_images) > SAMPLE_SIZE:
 
 
 # Load Model
-model_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
+if args.model_path:
+    model_path = args.model_path
+else:
+    model_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
 print(f"\n🔹 Loading Model: {model_path}")
 
 model = DeepfakeDetector(pretrained=False).to(device)

@@ -4,4 +4,4 @@ __pycache__/
 .DS_Store
 *.pyc
 database.db
-history_uploads
+history_uploads/

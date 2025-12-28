@@ -19,11 +19,11 @@ class Config:
     USE_VIT = True
     
     # Training Hyperparameters
-    BATCH_SIZE = 16  # Optimized for RTX 3060 (6GB VRAM) - 32 is risky
+    BATCH_SIZE = 32  # Optimized for Mac M4 (Unified Memory)
     EPOCHS = 3
     LEARNING_RATE = 1e-4
     WEIGHT_DECAY = 1e-5
-    NUM_WORKERS = 4  # Matches efficient performance cores
+    NUM_WORKERS = 8  # Leverage M4 Performance Cores
     
     # Hardware
     DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"

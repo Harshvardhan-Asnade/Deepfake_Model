@@ -233,13 +233,28 @@ def save_checkpoint(model, epoch, acc, best=False):
                         f.write("| Date | Time | Model Name | Dataset | Epochs | Accuracy | Loss | Status |\n")
                         f.write("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n")
                 
-                # Append Entry
+                # Append Entry to Summary Log
                 with open(log_path, "a", encoding="utf-8") as f:
                     # Format: Date | Time | Name | Dataset | Epoch | Acc | Loss | Status
                     dataset_name = os.path.basename(Config.DATA_DIR)
-                    entry = f"| **{timestamp.split(' | ')[0]}** | {timestamp.split(' | ')[1]} | {filename} | {dataset_name} | {epoch} | {acc*100:.2f}% | N/A | ✅ Saved |\n"
+                    entry = f"| **{timestamp.split(' | ')[0]}** | {timestamp.split(' | ')[1]} | {name} | {dataset_name} | {epoch} | {acc*100:.2f}% | N/A | ✅ Saved |\n"
                     f.write(entry)
                     print(f"📝 Logged to TRAINING_HISTORY.md")
+
+                # 📝 Detailed Lab Notebook Logging
+                detail_path = os.path.join(Config.PROJECT_ROOT, "DETAILED_HISTORY.md")
+                with open(detail_path, "a", encoding="utf-8") as f:
+                    f.write(f"\n## Model: {name} (Epoch {epoch})\n")
+                    f.write(f"| Feature | Detail |\n| :--- | :--- |\n")
+                    f.write(f"| **Date** | {timestamp} |\n")
+                    f.write(f"| **Training Accuracy** | {acc*100:.2f}% |\n")
+                    f.write(f"| **Dataset** | {Config.DATA_DIR} |\n")
+                    f.write(f"| **Batch Size** | {Config.BATCH_SIZE} |\n")
+                    f.write(f"| **Optimizer** | AdamW (lr={Config.LEARNING_RATE}) |\n")
+                    f.write(f"| **Device** | {Config.DEVICE.upper()} |\n")
+                    f.write("\n---\n")
+                    print(f"📘 Detailed log written to DETAILED_HISTORY.md")
+
             except Exception as e:
                 print(f"⚠️ Failed to write log: {e}")
 
