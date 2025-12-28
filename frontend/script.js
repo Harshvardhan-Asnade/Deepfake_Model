@@ -6,7 +6,7 @@
 // Example: https://huggingface.co/spaces/username/space-name/api
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? ''
-    : 'https://YOUR-HUGGINGFACE-SPACE-URL.hf.space'; // REPLACE THIS AFTER DEPLOYING BACKEND
+    : 'https://harshasnade-deepfake-detection-system-v1.hf.space';
 
 
 
