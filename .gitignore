@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 database.db
 history_uploads/
+huggingface_deploy/
