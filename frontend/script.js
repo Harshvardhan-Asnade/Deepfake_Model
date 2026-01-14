@@ -871,33 +871,13 @@ const previewImage = document.getElementById('previewImage');
 const resultsSection = document.getElementById('resultsSection');
 
 if (uploadArea) {
-    // Drag & Drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--accent-yellow)';
-        uploadArea.style.background = 'rgba(227, 245, 20, 0.05)';
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-        uploadArea.style.background = 'rgba(255, 255, 255, 0.02)';
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-        uploadArea.style.background = 'rgba(255, 255, 255, 0.02)';
-
-        if (e.dataTransfer.files.length > 0) {
-            handleAnalysisUpload(e.dataTransfer.files[0]);
-        }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleAnalysisUpload(e.target.files[0]);
-        }
-    });
+    // SINGLE FILE LOGIC DISABLED IN FAVOR OF QUEUE SYSTEM
+    // Drag & Drop listeners removed to prevent conflicts
+    /*
+    uploadArea.addEventListener('dragover', (e) => { ... });
+    uploadArea.addEventListener('drop', (e) => { ... });
+    fileInput.addEventListener('change', (e) => { ... });
+    */
 }
 
 async function handleAnalysisUpload(file) {
@@ -1758,7 +1738,8 @@ async function deleteScan(scanId, event) {
 }
 
 async function clearHistory() {
-    if (!confirm('Are you sure you want to clear all history?')) return;
+    // Confirmation removed as per user request
+
 
     try {
         await fetch(`${API_BASE_URL}/api/history`, { method: 'DELETE' });
@@ -1810,11 +1791,15 @@ if (fileInput && uploadArea) {
         const badge = document.getElementById('fileCountBadge');
         badge.style.display = 'none';
 
-        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        // Allow both images and videos
+        const files = Array.from(e.dataTransfer.files).filter(f =>
+            f.type.startsWith('image/') || f.type.startsWith('video/')
+        );
+
         if (files.length > 0) {
             addFilesToQueue(files);
         } else {
-            alert('Please drop image files only');
+            alert('Please drop image or video files only');
         }
     });
 }
@@ -1917,9 +1902,80 @@ async function processUploadQueue() {
     await loadStatisticsAndRecent();
 
     // Show success message
+    // Show success message and potentially redirect
     setTimeout(() => {
-        alert(`All files processed! ${uploadQueue.filter(f => f.status === 'completed').length}/${uploadQueue.length} succeeded.`);
-        clearQueue();
+        const isVideoFile = (file) => {
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv'];
+            return file.type.startsWith('video/') || videoExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+        };
+
+        const completedFiles = uploadQueue.filter(f => f.status === 'completed');
+        const videoFiles = completedFiles.filter(f => isVideoFile(f.file));
+        const imageFiles = completedFiles.filter(f => !isVideoFile(f.file));
+
+        // Case 1: Single Video -> Redirect
+        if (videoFiles.length === 1 && uploadQueue.length === 1) {
+            window.location.href = 'video_result.html';
+            return;
+        }
+
+        // Case 2: Single Image -> Show Analysis Result on Page
+        if (imageFiles.length === 1 && uploadQueue.length === 1) {
+            const fileObj = imageFiles[0];
+
+            // Render Preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewImg = document.getElementById('previewImage');
+                if (previewImg) previewImg.src = e.target.result;
+
+                // UI Transitions
+                const queueContainer = document.getElementById('fileQueueContainer');
+                const previewArea = document.getElementById('previewArea');
+                const analysisResults = document.querySelector('.analysis-results');
+                const emptyState = document.querySelector('.empty-state');
+
+                if (queueContainer) queueContainer.style.display = 'none';
+                if (previewArea) previewArea.style.display = 'block';
+                if (analysisResults) analysisResults.style.display = 'block';
+                if (emptyState) emptyState.style.display = 'none';
+
+                // Handle Heatmap
+                if (fileObj.result.heatmap) {
+                    const heatmapOverlay = document.getElementById('heatmapOverlay');
+                    const heatmapToggle = document.getElementById('heatmapToggle');
+                    const heatmapSwitch = document.getElementById('heatmapSwitch');
+
+                    if (heatmapOverlay) {
+                        heatmapOverlay.src = `data:image/jpeg;base64,${fileObj.result.heatmap}`;
+                        heatmapOverlay.style.display = 'block';
+                        heatmapOverlay.style.opacity = '0'; // Start hidden
+                    }
+
+                    if (heatmapToggle) heatmapToggle.style.display = 'flex';
+
+                    if (heatmapSwitch) {
+                        heatmapSwitch.checked = false;
+                        heatmapSwitch.onchange = (e) => {
+                            if (heatmapOverlay) heatmapOverlay.style.opacity = e.target.checked ? '1' : '0';
+                        };
+                    }
+                }
+
+                // Populate Data
+                updateAnalysisUI(fileObj.result);
+            };
+            reader.readAsDataURL(fileObj.file);
+            return; // Don't clear queue
+        }
+
+        // Case 3: Multiple/Mixed/Errors -> Standard Alert & Clear
+        alert(`All files processed! ${completedFiles.length}/${uploadQueue.length} succeeded.`);
+        if (uploadQueue.some(f => f.status !== 'completed')) {
+            // Keep queue if errors exist
+        } else {
+            clearQueue();
+        }
     }, 1000);
 }
 
@@ -1989,7 +2045,12 @@ async function uploadSingleFile(fileObj) {
 
             xhr.addEventListener('error', () => reject(new Error('Network error')));
 
-            xhr.open('POST', `${API_BASE_URL}/api/predict`);
+            // Determine endpoint based on file type
+            const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv'];
+            const isVideo = fileObj.file.type.startsWith('video/') || videoExtensions.some(ext => fileObj.file.name.toLowerCase().endsWith(ext));
+            const endpoint = isVideo ? '/api/predict_video' : '/api/predict';
+
+            xhr.open('POST', `${API_BASE_URL}${endpoint}`);
             xhr.send(formData);
         });
 
@@ -2003,6 +2064,24 @@ async function uploadSingleFile(fileObj) {
 
         const progressStatus = document.getElementById(`progress-status-${fileObj.id}`);
         if (progressStatus) progressStatus.textContent = 'Done';
+
+        // Specific handling for video results
+        // Re-check logic to be safe
+        const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv'];
+        const isVideo = fileObj.file.type.startsWith('video/') || videoExtensions.some(ext => fileObj.file.name.toLowerCase().endsWith(ext));
+
+        if (isVideo) {
+            // Save to localStorage so video_result.html can pick it up
+            localStorage.setItem('video_analysis_result', JSON.stringify(result));
+
+            // Add a "View Analysis" button
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn-secondary-small';
+            viewBtn.style.marginTop = '8px';
+            viewBtn.innerHTML = '▶ View Video Analysis';
+            viewBtn.onclick = () => window.location.href = 'video_result.html';
+            item.appendChild(viewBtn);
+        }
 
     } catch (error) {
         // Error
@@ -2298,7 +2377,8 @@ function updateSortIndicators() {
 
 // Delete individual item
 async function deleteHistoryItem(id) {
-    if (!confirm('Are you sure you want to delete this scan?')) return;
+    // Confirmation removed as per user request
+
 
     const row = document.querySelector(`tr[data-id="${id}"]`);
     if (row) {
@@ -2332,9 +2412,7 @@ async function deleteHistoryItem(id) {
 
 // Clear all history
 function confirmClearAll() {
-    if (!confirm('⚠️ WARNING: This will delete ALL scan history permanently. Are you sure?')) return;
-    if (!confirm('This action cannot be undone. Continue?')) return;
-
+    // Confirmation removed as per user request
     clearHistory();
 }
 
@@ -2392,7 +2470,7 @@ function downloadFile(content, filename, mimeType) {
     playSound('success');
     const format = filename.split('.').pop().toUpperCase();
     setTimeout(() => {
-        alert(`✅ Exported ${filteredHistoryData.length} records to ${format} successfully!`);
+        console.log(`✅ Exported ${filteredHistoryData.length} records to ${format} successfully!`);
     }, 100);
 }
 
