@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -11,28 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* ==================== PREMIUM NANO BANANA THEME ==================== */
+        /* ==================== VIDEO RESULT SPECIFIC STYLES ==================== */
 
-        /* Page Background Enhancement */
-        body {
-            position: relative;
-            background: #000000;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        /* Noise Texture Overlay */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            opacity: 0.4;
-            pointer-events: none;
-            z-index: 0;
-        }
 
         main {
             position: relative;
@@ -50,13 +30,11 @@
         }
 
         /* Results Header Enhancement */
+        /*
         .results-header h1 {
-            background: linear-gradient(135deg, #ffffff 0%, var(--accent-yellow) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 60px rgba(227, 245, 20, 0.2);
+             Conflicting rule removed
         }
+        */
 
         .back-link {
             display: inline-flex;
@@ -747,7 +725,86 @@
             color: var(--accent-yellow);
         }
 
-        /* ==================== ENHANCED DETAIL CARDS ==================== */
+        /* ==================== NEW DASHBOARD LAYOUT ==================== */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 24px;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dashboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Full width timeline section */
+        .dashboard-timeline {
+            grid-column: 1 / -1;
+        }
+
+        /* Full width frames section */
+        .dashboard-frames {
+            grid-column: 1 / -1;
+        }
+
+        /* Stats Grid - Compact 4x1 or 2x2 depending on space */
+        .compact-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card-compact {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card-compact:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(227, 245, 20, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .stat-card-compact .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-compact .stat-value {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-compact .stat-label {
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
 
         .detail-card {
             background: linear-gradient(135deg,
@@ -809,58 +866,7 @@
             transform: translateY(-1px);
         }
 
-        /* ==================== 2-COLUMN LAYOUT ==================== */
-
-        .two-column-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: start;
-        }
-
-        .left-column,
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Stats grid in left column - 2x2 layout */
-        .left-column .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 0;
-        }
-
-        /* Right column sections - remove bottom margins */
-        .right-column .verdict-card,
-        .right-column .timeline-container,
-        .right-column .frame-analysis-section,
-        .right-column .detail-card {
-            margin-bottom: 0;
-        }
-
-        /* Frame grid in right column - 2 columns */
-        .right-column .frame-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-
-        /* Tablet and below: Stack columns */
-        @media (max-width: 1200px) {
-            .two-column-layout {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .left-column .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-
-            .right-column .frame-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            }
-        }
+        /* ==================== RESPONSIVE DESIGN ==================== */
 
         /* ==================== RESPONSIVE DESIGN ==================== */
 
@@ -938,6 +944,46 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Fix for H1 visibility in light mode - removed text-fill-transparent */
+        .results-header h1 {
+            /* background: linear-gradient(135deg, #ffffff 0%, var(--accent-yellow) 100%); */
+            /* -webkit-background-clip: text; */
+            /* -webkit-text-fill-color: transparent; */
+            /* background-clip: text; */
+            text-shadow: 0 0 60px rgba(227, 245, 20, 0.2);
+        }
+
+        .nav-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 100px;
+            /* Pill shape */
+            transition: all 0.2s ease;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-yellow);
+            transform: translateY(-1px);
+        }
+
+        /* Light mode specific overrides for nav buttons */
+        [data-theme="light"] .nav-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+        }
+
+        [data-theme="light"] .nav-btn:hover {
+            background: var(--accent-yellow);
+            color: white;
+            border-color: transparent;
+        }
     </style>
 </head>
 
@@ -946,39 +992,54 @@
         <div class="loader"></div>
     </div>
 
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-content">
-            <a href="index.html" class="logo">
-                <img src="logo.svg" alt="DeepGuard Logo" class="logo-icon">
-                <span class="logo-text">DeepGuard</span>
-            </a>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="history.html" class="nav-link">History</a>
-                <a href="index.html#features" class="nav-link">Features</a>
+        <div class="container">
+            <div class="nav-content" style="display: flex; align-items: center; justify-content: space-between;">
+                <a href="index.html" class="logo">
+                    <img src="logo.svg" alt="DeepGuard" class="logo-img" style="height: 40px;">
+                    <span class="logo-text"
+                        style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Deep<span
+                            style="color: var(--accent-yellow);">Guard</span></span>
+                </a>
+                <div class="nav-links" style="display: flex; gap: 15px;">
+                    <a href="index.html" class="nav-btn">Home</a>
+                    <a href="history.html" class="nav-btn">History</a>
+                    <a href="index.html#features" class="nav-btn">Features</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <main class="container" style="padding-top: 120px; padding-bottom: 80px;">
-        <div class="results-header" style="margin-bottom: 3rem; text-align: left;">
-            <a href="index.html" class="back-link" style="margin-bottom: 1.5rem;">
-                <i class="fas fa-arrow-left"></i> Analyze Another File
-            </a>
-            <h1 style="font-size: 3rem; margin-bottom: 0.75rem; line-height: 1.1;">Video Analysis Report</h1>
-            <p style="color: rgba(255, 255, 255, 0.6); font-size: 1.1rem; max-width: 600px;">Comprehensive AI-powered
-                deepfake detection analysis with frame-by-frame insights</p>
+    <main class="container" style="padding-top: 140px; padding-bottom: 80px; max-width: 1600px;">
+
+        <!-- Header Section -->
+        <div class="results-header">
+            <div>
+                <div style="margin-bottom: 1rem;">
+                    <span class="status-badge">Analysis Complete</span>
+                </div>
+                <h1
+                    style="font-size: 3.5rem; margin-bottom: 0.75rem; line-height: 1.05; letter-spacing: -0.02em; color: var(--text-primary);">
+                    Video
+                    Analysis Report</h1>
+                <p style="color: var(--text-secondary); font-size: 1.2rem; max-width: 600px; line-height: 1.6;">
+                    Comprehensive AI-powered deepfake detection analysis with frame-by-frame insights
+                </p>
+            </div>
+
         </div>
 
-        <!-- 2-COLUMN LAYOUT -->
-        <div class="two-column-layout">
+        <!-- NEW DASHBOARD GRID LAYOUT -->
+        <div class="dashboard-grid">
 
-            <!-- LEFT COLUMN: Video Player + Stats -->
-            <div class="left-column">
-
+            <!-- LEFT MAIN COLUMN: Video Player & Timeline -->
+            <div class="dashboard-main">
                 <!-- Video Player -->
-                <div class="video-player-container">
+                <div class="video-player-container" style="margin: 0; max-width: 100%;">
                     <div class="video-wrapper">
                         <video id="videoPlayer">
                             Your browser does not support the video tag.
@@ -1030,42 +1091,43 @@
                     </div>
                 </div>
 
-                <!-- Statistics Grid (Below Video) -->
-                <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                        <div class="stat-value" id="videoDuration">--</div>
-                        <div class="stat-label">Duration</div>
+                <!-- Timeline Analysis (Moved below video in main column) -->
+                <div class="timeline-container" style="margin-bottom: 0;">
+                    <div class="timeline-header">
+                        <h3>
+                            <i class="fas fa-wave-square"></i>
+                            Frame-by-Frame Analysis
+                        </h3>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-film"></i></div>
-                        <div class="stat-value" id="framesProcessed">--</div>
-                        <div class="stat-label">Frames Processed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="stat-value" id="suspiciousCount">--</div>
-                        <div class="stat-label">Suspicious Frames</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
-                        <div class="stat-value" id="avgProb">--</div>
-                        <div class="stat-label">Avg Fake Probability</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Timeline showing the probability of manipulation detected in sampled frames. Click
+                        on the chart
+                        to seek to that moment.
+                    </p>
+                    <div class="chart-wrapper">
+                        <canvas id="timelineChart"></canvas>
                     </div>
                 </div>
 
-            </div>
+            </div> <!-- End Dashboard Main -->
 
-            <!-- RIGHT COLUMN: Verdict + Chart + Frames -->
-            <div class="right-column">
+            <!-- RIGHT SIDEBAR: Verdict, Stats, Details -->
+            <div class="dashboard-sidebar">
+
+                <!-- Action Button moved here -->
+                <a href="index.html" class="btn-secondary-outline"
+                    style="width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; padding: 12px;">
+                    <i class="fas fa-file-upload"></i> Analyze Another File
+                </a>
 
                 <!-- Verdict Section -->
-                <div class="verdict-card" id="verdictCard">
-                    <div class="verdict-icon">
+                <div class="verdict-card" id="verdictCard"
+                    style="margin: 0; flex-direction: column; text-align: center; gap: 1.5rem; padding: 2rem;">
+                    <div class="verdict-icon" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto;">
                         <i class="fas fa-video"></i>
                     </div>
-                    <div class="verdict-info">
-                        <h2 id="verdictTitle">ANALYZING...</h2>
+                    <div class="verdict-info" style="width: 100%;">
+                        <h2 id="verdictTitle" style="font-size: 1.8rem;">ANALYZING...</h2>
                         <div class="confidence-meter">
                             <div class="meter-bar">
                                 <div class="meter-fill" id="confidenceBar" style="width: 0%"></div>
@@ -1075,58 +1137,145 @@
                     </div>
                 </div>
 
-                <!-- Timeline Analysis -->
-                <div class="timeline-container">
-                    <div class="timeline-header">
-                        <h3>
-                            <i class="fas fa-wave-square"></i>
-                            Frame-by-Frame Analysis
-                        </h3>
+                <!-- Compact Stats Grid -->
+                <div class="compact-stats-grid" id="statsGrid">
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value" id="videoDuration">--</div>
+                        <div class="stat-label">Duration</div>
                     </div>
-                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-                        Timeline showing the probability of manipulation detected in sampled frames. Click on the chart
-                        to seek to that moment.
-                    </p>
-                    <div class="chart-wrapper">
-                        <canvas id="timelineChart"></canvas>
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-film"></i></div>
+                        <div class="stat-value" id="framesProcessed">--</div>
+                        <div class="stat-label">Frames</div>
                     </div>
-                </div>
-
-                <!-- Frame Analysis Section -->
-                <div class="frame-analysis-section">
-                    <h3 style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
-                        <i class="fas fa-images" style="color: var(--accent-yellow);"></i>
-                        Sampled Frames
-                    </h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-                        Click on any frame to jump to that moment in the video
-                    </p>
-                    <div class="frame-grid" id="frameGrid">
-                        <!-- Frames will be added dynamically -->
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-value" id="suspiciousCount">--</div>
+                        <div class="stat-label">Suspicious</div>
+                    </div>
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="stat-value" id="avgProb">--</div>
+                        <div class="stat-label">Fake Prob</div>
                     </div>
                 </div>
 
                 <!-- Analysis Details -->
-                <div class="detail-card">
+                <div class="detail-card" style="margin: 0; flex: 1;">
                     <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-file-alt" style="color: var(--accent-yellow);"></i>
                         Detection Notes
                     </h3>
                     <p id="analysisNotes"
-                        style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem;">
+                        style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem;">
                         Loading analysis details...
                     </p>
-                    <button id="downloadReportBtn" class="btn-download">
-                        <i class="fas fa-file-pdf"></i> Download Forensic Report
+                    <button id="downloadReportBtn" class="btn-download" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-file-pdf"></i> Download Report
                     </button>
                 </div>
 
+            </div> <!-- End Dashboard Sidebar -->
+
+            <!-- FULL WIDTH BOTTOM: Frames -->
+            <div class="dashboard-frames">
+                <!-- Frame Analysis Section -->
+                <div class="frame-analysis-section" style="margin: 0;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h3 style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
+                                <i class="fas fa-images" style="color: var(--accent-yellow);"></i>
+                                Sampled Frames
+                            </h3>
+                            <p style="color: var(--text-secondary);">
+                                Click on any frame to jump to that moment in the video
+                            </p>
+                        </div>
+                        <div class="frame-legend"
+                            style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                            <span style="display: flex; align-items: center; gap: 6px;"><span
+                                    style="width: 10px; height: 10px; border-radius: 50%; background: #10B981;"></span>
+                                Safe</span>
+                            <span style="display: flex; align-items: center; gap: 6px;"><span
+                                    style="width: 10px; height: 10px; border-radius: 50%; background: #ff3333;"></span>
+                                Suspicious</span>
+                        </div>
+                    </div>
+
+                    <div class="frame-grid" id="frameGrid"
+                        style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+                        <!-- Frames will be added dynamically -->
+                    </div>
+                </div>
             </div>
+
+        </div> <!-- End Dashboard Grid -->
+
+        <!-- REMOVED OLD SECTIONS since they are now integrated -->
 
         </div>
 
+
+
     </main>
 
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize Particles
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 800 } },
+                    color: { value: '#E3F514' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#E3F514',
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false,
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    },
+                    modes: {
+                        repulse: { distance: 100, duration: 0.4 },
+                        push: { particles_nb: 4 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+
+        // Apply theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Listen for theme changes if you want real-time syncing across tabs/windows (optional)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                document.documentElement.setAttribute('data-theme', e.newValue);
+            }
+        });
+    </script>
     <script src="video_result.js"></script>
 </body>
 
