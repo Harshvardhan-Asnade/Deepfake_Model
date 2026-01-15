@@ -4,9 +4,7 @@
 // API URL Configuration
 // In production (Vercel), this should point to the Hugging Face Spaces URL
 // Example: https://huggingface.co/spaces/username/space-name/api
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? ''
-    : 'https://harshasnade-deepfake-detection-system-v1.hf.space';
+const API_BASE_URL = ''; // Forced local execution
 
 
 
@@ -1060,6 +1058,29 @@ function updateAnalysisUI(result) {
     // Update Verdict
     verdictTitle.textContent = isFake ? 'FAKE DETECTED' : 'REAL IMAGE';
     verdictTitle.className = `verdict-title ${isFake ? 'verdict-fake' : 'verdict-real'}`;
+
+    // Update Badges
+    const badgeContainer = document.getElementById('detectionBadges');
+    if (badgeContainer) {
+        badgeContainer.innerHTML = '';
+
+        // Metadata Check
+        if (result.metadata_check && result.metadata_check.detected) {
+            const badge = document.createElement('div');
+            badge.className = 'detection-badge badge-critical';
+            badge.innerHTML = `<i class="fas fa-file-signature"></i> Signature: ${result.metadata_check.source || 'Unknown AI'}`;
+            badgeContainer.appendChild(badge);
+        }
+
+        // Watermark Check
+        if (result.watermark_check && result.watermark_check.detected) {
+            const badge = document.createElement('div');
+            badge.className = 'detection-badge badge-warning';
+            badge.innerHTML = `<i class="fas fa-fingerprint"></i> Watermark: ${result.watermark_check.source || 'Detected'}`;
+            badgeContainer.appendChild(badge);
+        }
+    }
+
 
     // Play Result Sound
     playSound(isFake ? 'alert' : 'success');

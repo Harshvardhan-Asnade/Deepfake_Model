@@ -3984,3 +3984,63 @@ input:checked+.slider:before {
         width: 100%;
     }
 }
+
+/* ==================== DETECTION BADGES ==================== */
+.detection-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.detection-badge {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    animation: badgeAppear 0.5s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.badge-critical {
+    background: rgba(255, 51, 51, 0.1);
+    color: #ff4d4d;
+    border: 1px solid rgba(255, 51, 51, 0.3);
+}
+
+.badge-warning {
+    background: rgba(227, 245, 20, 0.1);
+    color: var(--accent-yellow);
+    border: 1px solid rgba(227, 245, 20, 0.3);
+}
+
+/* Light Theme Overrides for Badges */
+:root[data-theme="light"] .badge-critical {
+    background: rgba(255, 51, 51, 0.1);
+    color: #cc0000;
+    border-color: rgba(255, 51, 51, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 51, 51, 0.1);
+}
+
+:root[data-theme="light"] .badge-warning {
+    background: rgba(0, 68, 204, 0.1);
+    color: #0044CC;
+    border-color: rgba(0, 68, 204, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 68, 204, 0.1);
+}
+
+@keyframes badgeAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
