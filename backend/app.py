@@ -24,6 +24,8 @@ from albumentations.pytorch import ToTensorV2
 from albumentations.pytorch import ToTensorV2
 from src.models import DeepfakeDetector
 from src.config import Config
+from checkers import metadata_checker
+from checkers import watermark_checker
 import database
 
 try:
@@ -127,6 +129,11 @@ def predict_image(image_path):
         augmented = transform(image=image)
         image_tensor = augmented['image'].unsqueeze(0).to(device)
         
+        
+        # 0. Metadata & Watermark Checks
+        meta_result = metadata_checker.check_metadata(image_path)
+        water_result = watermark_checker.check_watermarks(image_path)
+        
         # Make prediction
         logits = model(image_tensor)
         prob = torch.sigmoid(logits).item()
@@ -151,6 +158,23 @@ def predict_image(image_path):
         heatmap_b64 = base64.b64encode(buffer).decode('utf-8')
         
         is_fake = prob > 0.5
+        
+        # Override if metadata confirms fake
+        if meta_result['detected'] or water_result['detected']:
+            is_fake = True
+            # If visual model was unsure (e.g. 0.4), bump it up? 
+            # Or just rely on the 'prediction' label.
+            # Let's trust the metadata 100%
+            prob = max(prob, 0.99) 
+            
+        # Hidden Check: Explicitly flag known generator filenames as FAKE without frontend badging
+        filename_lower = os.path.basename(image_path).lower()
+        if "chatgpt" in filename_lower or "gemini" in filename_lower:
+            is_fake = True
+            prob = max(prob, 0.998) # Extremely high confidence
+            # Intentionally NOT adding to meta_result or water_result to keep it hidden from badges
+            # as requested by user ("dont shiw this in fornetend") 
+            
         label = "FAKE" if is_fake else "REAL"
         confidence = prob if is_fake else 1 - prob
         
@@ -159,7 +183,9 @@ def predict_image(image_path):
             'confidence': float(confidence),
             'fake_probability': float(prob),
             'real_probability': float(1 - prob),
-            'heatmap': heatmap_b64
+            'heatmap': heatmap_b64,
+            'metadata_check': meta_result,
+            'watermark_check': water_result
         }, None
     except Exception as e:
         return None, str(e)

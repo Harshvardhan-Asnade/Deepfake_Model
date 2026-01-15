@@ -7,3 +7,6 @@ albumentations
 Pillow
 numpy
 safetensors
+c2pa-python
+invisible-watermark==0.2.0
+ExifRead

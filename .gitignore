@@ -1,7 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Database
+database.db
+*.sqlite3
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment Variables
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# Project Specific
 test_images/
 uploads/
-__pycache__/
-.DS_Store
-*.pyc
-database.db
 history_uploads/
+video_batch_results.csv
+*.bak
