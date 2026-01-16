@@ -43,6 +43,7 @@ video_batch_results.csv
 
 # Documentation (Ignore all)
 *.md
+documentation/
 
 # Specific Files
 LICENSE
@@ -50,6 +51,12 @@ PULL_REQUEST_TEMPLATE.md
 bug_report.yml
 config.yml
 feature_request.yml
-documentation/
+model/DETAILED_HISTORY.md
+model/FACEFORENSICS_GUIDE.md
+model/MODEL_CARD.md
+model/TRAINING_HISTORY.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+CHANGELOG.md
 README.md
-
