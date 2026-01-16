@@ -40,6 +40,16 @@ history_uploads/
 video_batch_results.csv
 *.bak
 
-# Documentation
+
+# Documentation (Ignore all)
+*.md
+
+# Specific Files
+LICENSE
+PULL_REQUEST_TEMPLATE.md
+bug_report.yml
+config.yml
+feature_request.yml
 documentation/
 README.md
+
