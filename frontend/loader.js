@@ -103,8 +103,7 @@ const initLoader = () => {
                 map.forEach(char => {
                     const span = document.createElement('span');
                     span.textContent = char;
-                    span.style.opacity = '0.5'; // Start dim
-                    span.style.transition = 'opacity 0.1s ease';
+                    span.className = 'char-waiting'; // Start in waiting state
                     fragment.appendChild(span);
                     allChars.push(span);
                 });
@@ -145,16 +144,11 @@ const initLoader = () => {
 
             allChars.forEach((charSpan, index) => {
                 if (index < charsToLight) {
-                    charSpan.style.opacity = '1';
-                    // Optional: Add a slight "hot" glow to the latest character
-                    if (index === charsToLight - 1) {
-                        charSpan.style.textShadow = '0 0 8px rgba(255, 255, 255, 0.8)';
-                    } else {
-                        charSpan.style.textShadow = 'none';
-                    }
+                    charSpan.className = 'char-typed';
+                } else if (index === charsToLight && index < totalChars) {
+                    charSpan.className = 'char-current';
                 } else {
-                    charSpan.style.opacity = '0.5';
-                    charSpan.style.textShadow = 'none';
+                    charSpan.className = 'char-waiting';
                 }
             });
         } else if (loaderQuote) {

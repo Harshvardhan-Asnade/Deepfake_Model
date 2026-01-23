@@ -4,10 +4,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    initSmoothScroll();
+    const lenis = initSmoothScroll();
     initMagneticButtons();
     initSpotlightCards();
     initTextReveals();
+    if (lenis) {
+        initParallax(lenis);
+    }
 });
 
 /* ==================== 1. SMOOTH SCROLL (LENIS) ==================== */
@@ -15,7 +18,7 @@ function initSmoothScroll() {
     // Check if Lenis is loaded
     if (typeof Lenis === 'undefined') {
         console.warn('Lenis not loaded. Skipping smooth scroll.');
-        return;
+        return null;
     }
 
     const lenis = new Lenis({
@@ -36,8 +39,7 @@ function initSmoothScroll() {
 
     requestAnimationFrame(raf);
 
-    // Connect to AOS if needed, though usually they work independently
-    // AOS.refresh(); 
+    return lenis;
 }
 
 /* ==================== 2. MAGNETIC BUTTONS ==================== */
@@ -99,8 +101,22 @@ function initTextReveals() {
     });
 
     targets.forEach(target => {
-        // Split text logic could go here if we want to wrap words/chars automatically
-        // For now, we'll assume a class-based trigger in CSS
         observer.observe(target);
+    });
+}
+
+/* ==================== 5. PARALLAX EFFECTS ==================== */
+function initParallax(lenis) {
+    const parallaxItems = document.querySelectorAll('[data-speed]');
+
+    if (parallaxItems.length === 0) return;
+
+    lenis.on('scroll', ({ scroll }) => {
+        parallaxItems.forEach(item => {
+            const speed = parseFloat(item.dataset.speed) || 0;
+            // Apply standard translation
+            // Note: This overrides other transforms, so use on dedicated wrappers or elements without other transforms
+            item.style.transform = `translateY(${scroll * speed}px)`;
+        });
     });
 }
