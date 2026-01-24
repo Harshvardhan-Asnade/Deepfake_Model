@@ -83,8 +83,9 @@ if len(fake_images) > SAMPLE_SIZE:
 # Load Model
 if args.model_path:
     model_path = args.model_path
-else:
-    model_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
+else:    
+    # Use the combined model by default
+    model_path = "results/checkpoints/algro_markv2.safetensors"
 print(f"\n🔹 Loading Model: {model_path}")
 
 model = DeepfakeDetector(pretrained=False).to(device)

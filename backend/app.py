@@ -69,7 +69,7 @@ def load_model():
     
     checkpoint_dir = Config.CHECKPOINT_DIR
     # Explicitly target the model requested by the user
-    target_model_name = "best_model.safetensors"
+    target_model_name = "algro_markv2.safetensors"
     checkpoint_path = os.path.join(checkpoint_dir, target_model_name)
     
     print(f"Using device: {device}")
