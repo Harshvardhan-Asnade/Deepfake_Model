@@ -5,7 +5,7 @@ import os
 import base64
 from PIL import Image
 
-def process_video(video_path, model, transform, device, frame_stride=5):
+def process_video(video_path, model, transform, device, frames_per_second=1):
     """
     Process a video file frame-by-frame using the deepfake detection model.
     
@@ -14,8 +14,8 @@ def process_video(video_path, model, transform, device, frame_stride=5):
         model (torch.nn.Module): Loaded PyTorch model.
         transform (callable): Albumentations transform pipeline.
         device (torch.device): Device to run inference on.
-        frame_stride (int): Analyze 1 out of every 'frame_stride' frames.
-                            Default is 5 (sparse sampling).
+        frames_per_second (int): Number of frames to sample per second of video. 
+                                 Default is 1 to keep processing fast.
     
     Returns:
         dict: Aggregated results including verdict, average confidence, and frame-level details.
@@ -34,8 +34,9 @@ def process_video(video_path, model, transform, device, frame_stride=5):
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = total_frames / fps
     
-    # Use fixed stride
-    step = frame_stride
+    # Calculate sampling interval (step size)
+    # If we want 1 frame per second, we step by 'fps' frames
+    step = int(fps / frames_per_second)
     if step < 1: step = 1
 
     frame_indices = []
