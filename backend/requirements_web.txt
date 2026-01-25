@@ -10,3 +10,11 @@ safetensors
 c2pa-python
 invisible-watermark==0.2.0
 ExifRead
+onnx>=1.14.0
+onnxruntime-gpu; sys_platform == 'linux' or sys_platform == 'win32'
+# For Mac Silicon, standard onnxruntime usually leverages CoreML automatically or we install onnxruntime-silicon explicitly if needed.
+# But standard pip install onnxruntime often suffices or we might need a specific instruction.
+# For now, let's just add the generic one and allow user to adjust for their specific hardware if 'gpu' fails.
+# onnxruntime; sys_platform == 'darwin'
+decord>=0.6.0
+openvino>=2023.0.0

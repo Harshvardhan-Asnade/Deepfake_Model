@@ -398,7 +398,7 @@ def predict_video():
         if model is None:
              return jsonify({'error': 'Model not loaded'}), 500
              
-        result = video_inference.process_video(filepath, model, transform, device, frames_per_second=20)
+        result = video_inference.process_video(filepath, model, transform, device, frame_stride=5)
         
         if "error" in result:
              return jsonify(result), 500

@@ -60,3 +60,11 @@ CODE_OF_CONDUCT.md
 SECURITY.md
 CHANGELOG.md
 README.md
+DeepGuard_Research_Paper.md
+EXPLAIN_TO_JUDGES.md
+MODEL_EXPLANATION.md
+PROJECT_STRUCTURE.md
+
+# Models
+*.onnx
+*.onnx.data
