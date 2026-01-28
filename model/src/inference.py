@@ -60,9 +60,27 @@ def load_models(checkpoints_arg, device):
             models.append(model)
             print(f"✅ Successfully loaded: {os.path.basename(path)}")
         except Exception as e:
-            print(f"❌ Failed to load {path}: {e}")
-            import traceback
-            traceback.print_exc()
+            # Try fixing keys for Mark-V compatibility
+            try:
+                print(f"⚠️ Initial load failed. Attempting legacy key remapping for {os.path.basename(path)}...")
+                from collections import OrderedDict
+                new_state_dict = OrderedDict()
+                for k, v in state_dict.items():
+                    if k.startswith('rgb_branch.features.'):
+                        new_k = k.replace('rgb_branch.features.', 'rgb_branch.net.features.')
+                        new_state_dict[new_k] = v
+                    elif k.startswith('rgb_branch.avgpool.'):
+                        new_k = k.replace('rgb_branch.avgpool.', 'rgb_branch.net.avgpool.')
+                        new_state_dict[new_k] = v
+                    else:
+                        new_state_dict[k] = v
+                
+                model.load_state_dict(new_state_dict, strict=False) # strict=False to ignore duplicate 'features' keys if any
+                models.append(model)
+                print(f"✅ Successfully loaded (with remapping): {os.path.basename(path)}")
+            except Exception as e2:
+                print(f"❌ Failed to load {path}: {e}")
+                print(f"❌ Remapping also failed: {e2}")
             
     if not models:
         # Fallback for testing if no checkpoint exists yet
@@ -99,7 +117,7 @@ def predict_ensemble(models, image_path, device, transform):
 def main():
     parser = argparse.ArgumentParser(description="Deepfake Detection Inference (Ensemble Support)")
     parser.add_argument("--source", type=str, required=True, help="Path to image or directory")
-    parser.add_argument("--checkpoints", type=str, default="results/checkpoints", help="Path to checkpoint file, list of files (comma-separated), or directory")
+    parser.add_argument("--checkpoints", type=str, default=Config.ACTIVE_MODEL_PATH, help="Path to checkpoint file or directory (Default: Mark-V)")
     parser.add_argument("--device", type=str, default=Config.DEVICE, help="Device to use (cuda/mps/cpu)")
     args = parser.parse_args()
     

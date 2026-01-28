@@ -113,13 +113,13 @@ def finetune_faceforensics():
         )
     
     # Load pre-trained model
-    print("\n🔄 Loading pre-trained model (best_model)...")
+    print("\n🔄 Loading pre-trained model (algro_markv2)...")
     model = DeepfakeDetector(pretrained=False).to(device)
     
     # Try to load the best model
-    checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
+    checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, "algro_markv2.safetensors")
     if not os.path.exists(checkpoint_path):
-        checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.pth")
+        checkpoint_path = os.path.join(Config.CHECKPOINT_DIR, "best_model.safetensors")
     
     if os.path.exists(checkpoint_path):
         try:
@@ -201,7 +201,15 @@ def finetune_faceforensics():
     print(f"\n📊 Next steps:")
     print(f"   1. Test the model: python model/evaluate_custom.py")
     print(f"   2. Compare models: python model/compare_models.py")
-    print(f"   3. Update best_model: Copy best_model_ff.safetensors to best_model.safetensors")
+    
+    # Auto-generate report
+    print(f"\n⚡ Auto-generating Post-Training Report...")
+    try:
+        from src.generate_report import generate_report
+        generate_report("best_model_ff.safetensors")
+    except Exception as e:
+        print(f"⚠️ Failed to auto-generate report: {e}")
+
 
 def validate(model, loader, criterion, device):
     """Validation function"""

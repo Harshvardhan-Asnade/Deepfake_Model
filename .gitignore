@@ -60,3 +60,6 @@ CODE_OF_CONDUCT.md
 SECURITY.md
 CHANGELOG.md
 README.md
+visualizations/
+generate_visualizations.py
+plots/
