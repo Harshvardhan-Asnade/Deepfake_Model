@@ -34,13 +34,14 @@ class Config:
         DATA_DIR = r"C:\Users\kanna\Downloads\Dataset\Largest Dataset\Largest Dataset"
     else:
         # Mac Path
-        DATA_DIR = "/Users/harshvardhan/Developer/DataSet"
+        DATA_DIR = "/Users/harshvardhan/Developer/Deepfake Project /DataSet"
     
     # Since we are using the root folder, the script will recursively find ALL images
     # in all sub-datasets and split them 80/20 for training/validation.
     TRAIN_DATA_PATH = DATA_DIR 
     TEST_DATA_PATH = DATA_DIR 
     CHECKPOINT_DIR = os.path.join(RESULTS_DIR, "checkpoints")
+    ACTIVE_MODEL_PATH = os.path.join(CHECKPOINT_DIR, "Mark-V.safetensors")
 
     @classmethod
     def setup(cls):

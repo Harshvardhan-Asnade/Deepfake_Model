@@ -2588,3 +2588,189 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(video);
     }
 });
+
+// ==================== NEW UI LOGIC ====================
+
+// --- Toast Notifications ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '❌';
+    if (type === 'warning') icon = '⚠️';
+
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// --- Upload Progress Simulation ---
+function updateUploadProgress(percent) {
+    const container = document.getElementById('uploadProgressContainer');
+    const bar = document.getElementById('uploadProgressBar');
+    const text = document.getElementById('uploadProgressText');
+
+    if (percent === 0) {
+        container.style.display = 'block';
+    }
+
+    bar.style.width = `${percent}%`;
+    text.textContent = `${Math.round(percent)}%`;
+
+    if (percent >= 100) {
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 500);
+    }
+}
+
+// --- Skeleton Loader ---
+function toggleSkeleton(show) {
+    const skeleton = document.getElementById('skeletonLoader');
+    const emptyState = document.getElementById('emptyState');
+    const results = document.querySelector('.analysis-results');
+
+    if (show) {
+        emptyState.style.display = 'none';
+        results.style.display = 'none';
+        skeleton.style.display = 'block';
+    } else {
+        skeleton.style.display = 'none';
+        // Results will be shown by updateAnalysisUI
+    }
+}
+
+// --- Confetti Effect ---
+function triggerConfetti() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#E3F514', '#10b981', '#3b82f6', '#ec4899'];
+
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.top = '-10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+
+        container.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+// Add keyframes for confetti if not exists
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+@keyframes fall {
+    to { transform: translateY(100vh) rotate(720deg); }
+}
+`;
+document.head.appendChild(styleSheet);
+
+
+// --- Load Recent Analyses ---
+async function loadRecentAnalyses() {
+    const grid = document.getElementById('recentGrid');
+    if (!grid) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/history`);
+        const history = await response.json();
+
+        // Take last 4
+        const recent = history.slice(0, 4);
+
+        grid.innerHTML = recent.map(item => {
+            const isFake = item.prediction === 'FAKE';
+            return `
+            <div class="recent-card" data-type="${isFake ? 'fake' : 'real'}">
+                <div class="recent-card-header">
+                    <span class="recent-badge ${isFake ? 'fake' : 'real'}">${isFake ? 'FAKE' : 'REAL'}</span>
+                    <span class="recent-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                </div>
+                <h4 class="recent-card-title">${item.filename}</h4>
+                <div class="recent-confidence">
+                    <span class="recent-confidence-label">${(item.confidence * 100).toFixed(0)}% Confidence</span>
+                    <div class="recent-confidence-bar">
+                        <div class="recent-confidence-fill" style="width: ${item.confidence * 100}%"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+
+        if (recent.length === 0) {
+            grid.innerHTML = '<div class="recent-grid-empty">No recent analyses found</div>';
+        }
+
+    } catch (e) {
+        console.error("Failed to load recent history", e);
+    }
+}
+
+// --- Filter History ---
+function filterHistory(type) {
+    const cards = document.querySelectorAll('.recent-card');
+    const buttons = document.querySelectorAll('.btn-filter');
+
+    // Update buttons
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    cards.forEach(card => {
+        if (type === 'all' || card.dataset.type === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// --- Export Results ---
+function exportResults() {
+    const verdict = document.getElementById('verdictTitle').textContent;
+    const confidence = document.getElementById('confidenceValue').textContent;
+    const scanTime = document.getElementById('scanTimeDisplay').textContent;
+
+    const data = {
+        verdict,
+        confidence,
+        scanTime,
+        timestamp: new Date().toISOString(),
+        agent: "DeepGuard AI"
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "analysis_result.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+
+    showToast('Results exported successfully', 'success');
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadRecentAnalyses();
+});
+
