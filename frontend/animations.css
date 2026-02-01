@@ -121,3 +121,32 @@
     z-index: 10;
     pointer-events: none;
 }
+
+/* ==================== ACCESSIBILITY: REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .animate-fade-up,
+    .animate-float,
+    .animate-pulse-glow {
+        animation: none !important;
+    }
+}
+
+/* Reduced animations on mobile for performance */
+@media (max-width: 768px) {
+    .animate-float {
+        animation-duration: 8s;
+    }
+
+    .animate-pulse-glow {
+        animation-duration: 4s;
+    }
+}

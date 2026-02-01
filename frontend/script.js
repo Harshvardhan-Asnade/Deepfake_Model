@@ -2,9 +2,10 @@
 // Moved to loader.js
 
 // API URL Configuration
-// In production (Vercel), this should point to the Hugging Face Spaces URL
-// Example: https://huggingface.co/spaces/username/space-name/api
-const API_BASE_URL = ''; // Forced local execution
+// Automatically select between Localhost and Production
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:7860'
+    : 'https://YOUR_HF_SPACE_URL.hf.space'; // <--- REPLACE THIS WITH YOUR HUGGING FACE DIRECT URL
 
 
 
@@ -1081,6 +1082,12 @@ async function handleAnalysisUpload(file) {
             };
         }
 
+        // Store scan_id for feedback
+        if (result.scan_id) {
+            currentScanId = result.scan_id;
+            console.log('Scan ID stored:', currentScanId);
+        }
+
         // Update UI with Results
         updateAnalysisUI(result);
 
@@ -1252,6 +1259,21 @@ function updateAnalysisUI(result) {
     }
     const downloadBtn = document.getElementById('downloadReportBtn');
     if (downloadBtn) downloadBtn.style.display = 'block';
+
+    // Show feedback section and reset buttons
+    const feedbackSection = document.getElementById('feedbackSection');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const btnCorrect = document.getElementById('btnFeedbackCorrect');
+    const btnWrong = document.getElementById('btnFeedbackWrong');
+
+    if (feedbackSection) {
+        feedbackSection.style.display = 'block';
+        // Reset buttons to enabled state
+        if (btnCorrect) btnCorrect.disabled = false;
+        if (btnWrong) btnWrong.disabled = false;
+        // Hide any previous messages
+        if (feedbackMessage) feedbackMessage.style.display = 'none';
+    }
 }
 
 function resetAnalysis() {
@@ -1268,6 +1290,78 @@ function resetAnalysis() {
 
     const loader = document.getElementById('analysisLoader');
     if (loader) loader.style.display = 'none';
+}
+
+// ==================== FEEDBACK SUBMISSION ====================
+async function submitFeedback(isCorrect) {
+    if (!currentScanId) {
+        showToast('No scan ID available. Please analyze an image first.', 'error');
+        return;
+    }
+
+    const btnCorrect = document.getElementById('btnFeedbackCorrect');
+    const btnWrong = document.getElementById('btnFeedbackWrong');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const verdictTitle = document.getElementById('verdictTitle');
+
+    // Get the predicted label from the verdict
+    const predictedLabel = verdictTitle.textContent.includes('FAKE') ? 'FAKE' : 'REAL';
+
+    // Disable buttons to prevent duplicate submissions
+    if (btnCorrect) btnCorrect.disabled = true;
+    if (btnWrong) btnWrong.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                scan_id: currentScanId,
+                is_correct: isCorrect,
+                predicted_label: predictedLabel
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Show success message
+            if (feedbackMessage) {
+                feedbackMessage.className = 'feedback-message success';
+
+                if (isCorrect) {
+                    feedbackMessage.innerHTML = `✅ Thank you! Your feedback confirms this prediction was correct.`;
+                } else {
+                    feedbackMessage.innerHTML = `✅ Thank you! This image has been saved for model improvement.<br>
+                        <small>Actual label: <strong>${result.actual_label}</strong></small>`;
+                }
+
+                feedbackMessage.style.display = 'block';
+            }
+
+            showToast(`Feedback submitted successfully!`, 'success');
+        } else {
+            throw new Error(result.error || 'Failed to submit feedback');
+        }
+
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+
+        // Re-enable buttons on error
+        if (btnCorrect) btnCorrect.disabled = false;
+        if (btnWrong) btnWrong.disabled = false;
+
+        // Show error message
+        if (feedbackMessage) {
+            feedbackMessage.className = 'feedback-message error';
+            feedbackMessage.innerHTML = `❌ Failed to submit feedback. Please try again.`;
+            feedbackMessage.style.display = 'block';
+        }
+
+        showToast('Failed to submit feedback', 'error');
+    }
 }
 
 // CTA button handlers
@@ -1403,7 +1497,7 @@ async function generatePDFReport(historyItem = null) {
 
     // -- Logo & Header --
     try {
-        const logoImg = await loadImage('logo.svg');
+        const logoImg = await loadImage('logo.ico');
         const canvas = document.createElement('canvas');
         canvas.width = 100;
         canvas.height = 100;
@@ -1830,6 +1924,7 @@ if (window.location.pathname.includes('history.html')) {
 }
 
 // ==================== MULTI-FILE UPLOAD SYSTEM ====================
+let currentScanId = null; // Track the latest scan ID for feedback
 let uploadQueue = [];
 let isProcessingQueue = false;
 let currentUploadIndex = 0;
@@ -1892,6 +1987,40 @@ if (fileInput && uploadArea) {
             showToast(`${validFiles.length} file(s) added to queue`, 'success');
         }
         fileInput.value = ''; // Reset
+    });
+
+    // Paste event listener for copy-paste functionality
+    document.addEventListener('paste', (e) => {
+        // Only handle paste if we're on the analysis page
+        if (!uploadArea) return;
+
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        const pastedFiles = [];
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+
+            // Check if the clipboard item is an image
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    pastedFiles.push(file);
+                }
+            }
+        }
+
+        if (pastedFiles.length > 0) {
+            e.preventDefault(); // Prevent default paste behavior
+
+            const validFiles = pastedFiles.filter(validateFile);
+
+            if (validFiles.length > 0) {
+                addFilesToQueue(validFiles);
+                showToast(`${validFiles.length} image(s) pasted successfully`, 'success');
+            }
+        }
     });
 }
 
@@ -2109,6 +2238,12 @@ async function processUploadQueue() {
                             if (heatmapOverlay) heatmapOverlay.style.opacity = e.target.checked ? '1' : '0';
                         };
                     }
+                }
+
+                // Store scan_id for feedback
+                if (fileObj.result.scan_id) {
+                    currentScanId = fileObj.result.scan_id;
+                    console.log('Scan ID stored from queue:', currentScanId);
                 }
 
                 // Populate Data

@@ -581,6 +581,7 @@
         font-size: 11px;
     }
 }
+
 /* ==================== SKELETON LOADERS ==================== */
 .skeleton {
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
@@ -590,12 +591,26 @@
 }
 
 @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
 }
 
-.skeleton-text { height: 14px; margin-bottom: 8px; width: 80%; }
-.skeleton-img { width: 60px; height: 60px; border-radius: 8px; }
+.skeleton-text {
+    height: 14px;
+    margin-bottom: 8px;
+    width: 80%;
+}
+
+.skeleton-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+}
 
 /* ==================== STICKY HEADER ==================== */
 .history-table-container {
@@ -607,7 +622,8 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #111; /* Solid background for sticky */
+    background: #111;
+    /* Solid background for sticky */
 }
 
 /* ==================== VIEW TOGGLE & FILTER CHIPS ==================== */
@@ -741,7 +757,11 @@
     transform: translateX(-50%) translateY(0);
 }
 
-.selection-info { font-weight: 700; font-size: 14px; }
+.selection-info {
+    font-weight: 700;
+    font-size: 14px;
+}
+
 .btn-batch {
     background: rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -753,7 +773,9 @@
     transition: all 0.2s;
 }
 
-.btn-batch:hover { background: rgba(0, 0, 0, 0.2); }
+.btn-batch:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
 
 /* ==================== PAGINATION ==================== */
 .pagination {
@@ -779,9 +801,21 @@
     transition: all 0.3s;
 }
 
-.btn-page:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-page.active { background: var(--accent-yellow); color: #000; border-color: var(--accent-yellow); }
-.page-info { color: #888; font-size: 14px; }
+.btn-page:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-page.active {
+    background: var(--accent-yellow);
+    color: #000;
+    border-color: var(--accent-yellow);
+}
+
+.page-info {
+    color: #888;
+    font-size: 14px;
+}
 
 /* ==================== PREVIEW MODAL ==================== */
 .modal-overlay {
@@ -812,8 +846,15 @@
 }
 
 @keyframes modalSlideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-close {
@@ -850,7 +891,11 @@
     gap: 20px;
 }
 
-.modal-title { font-size: 24px; font-weight: 700; color: #fff; }
+.modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+}
 
 .notes-section {
     margin-top: 10px;
@@ -885,6 +930,8 @@
 }
 
 @media (max-width: 768px) {
-    .modal-body { grid-template-columns: 1fr; padding: 20px; }
+    .modal-body {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
 }
-

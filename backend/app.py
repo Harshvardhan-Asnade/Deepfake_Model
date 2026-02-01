@@ -44,8 +44,10 @@ CORS(app)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'mp4', 'avi', 'mov', 'webm'}
 HISTORY_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'history_uploads')
+FEEDBACK_FOLDER = os.path.join(os.path.dirname(__file__), 'feedback_images')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(HISTORY_FOLDER, exist_ok=True)
+os.makedirs(FEEDBACK_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -92,8 +94,29 @@ def load_model():
             state_dict = load_file(checkpoint_path)
         else:
             state_dict = torch.load(checkpoint_path, map_location=device)
-        model.load_state_dict(state_dict, strict=False)
-        print(f"✅ PyTorch Model loaded successfully!")
+        
+        # Try loading directly first
+        try:
+            model.load_state_dict(state_dict)
+            print(f"✅ PyTorch Model loaded successfully!")
+        except Exception as e:
+            # Keys don't match - apply remapping for architecture compatibility
+            print(f"⚠️  Direct load failed. Attempting key remapping...")
+            from collections import OrderedDict
+            new_state_dict = OrderedDict()
+            for k, v in state_dict.items():
+                if k.startswith('rgb_branch.features.'):
+                    new_k = k.replace('rgb_branch.features.', 'rgb_branch.net.features.')
+                    new_state_dict[new_k] = v
+                elif k.startswith('rgb_branch.avgpool.'):
+                    new_k = k.replace('rgb_branch.avgpool.', 'rgb_branch.net.avgpool.')
+                    new_state_dict[new_k] = v
+                else:
+                    new_state_dict[k] = v
+            
+            model.load_state_dict(new_state_dict, strict=False)
+            print(f"✅ PyTorch Model loaded successfully (with key remapping)!")
+            
     except Exception as e:
         print(f"❌ Error loading PyTorch checkpoint: {e}")
         model = None
@@ -339,7 +362,7 @@ def predict():
         # Relative path for frontend
         relative_path = f"history_uploads/{history_filename}"
 
-        database.add_scan(
+        scan_id = database.add_scan(
             filename=filename,
             prediction=result['prediction'],
             confidence=result['confidence'],
@@ -353,6 +376,9 @@ def predict():
             os.remove(filepath)
         except:
             pass
+        
+        # Add scan_id to result for frontend tracking
+        result['scan_id'] = scan_id
         
         return jsonify(result)
     
@@ -463,6 +489,83 @@ def clear_history():
     if database.clear_history():
         return jsonify({'message': 'History cleared'})
     return jsonify({'error': 'Failed to clear history'}), 500
+
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    """Submit user feedback on a prediction"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        scan_id = data.get('scan_id')
+        is_correct = data.get('is_correct')
+        predicted_label = data.get('predicted_label')
+        
+        if scan_id is None or is_correct is None or not predicted_label:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Get scan details from history
+        history = database.get_history()
+        scan = next((s for s in history if s['id'] == scan_id), None)
+        
+        if not scan:
+            return jsonify({'error': 'Scan not found'}), 404
+        
+        actual_label = None
+        feedback_image_path = None
+        
+        # If prediction is incorrect, determine actual label and copy image
+        if not is_correct:
+            # Actual label is opposite of prediction
+            actual_label = 'REAL' if predicted_label == 'FAKE' else 'FAKE'
+            
+            # Copy image to feedback folder for retraining
+            if scan.get('image_path'):
+                try:
+                    import shutil
+                    source_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', scan['image_path'])
+                    feedback_filename = f"feedback_{scan_id}_{scan['filename']}"
+                    feedback_dest = os.path.join(FEEDBACK_FOLDER, feedback_filename)
+                    
+                    if os.path.exists(source_path):
+                        shutil.copy(source_path, feedback_dest)
+                        feedback_image_path = feedback_filename
+                        print(f"✅ Copied feedback image to: {feedback_dest}")
+                    else:
+                        print(f"⚠️  Source image not found: {source_path}")
+                except Exception as e:
+                    print(f"❌ Error copying feedback image: {e}")
+        
+        # Record feedback in database
+        success = database.add_feedback(
+            scan_id=scan_id,
+            is_correct=is_correct,
+            predicted_label=predicted_label,
+            actual_label=actual_label,
+            image_path=feedback_image_path,
+            confidence=scan.get('confidence')
+        )
+        
+        if success:
+            feedback_type = 'correct' if is_correct else 'incorrect'
+            return jsonify({
+                'message': f'Feedback recorded successfully',
+                'feedback': feedback_type,
+                'actual_label': actual_label
+            })
+        else:
+            return jsonify({'error': 'Failed to record feedback'}), 500
+            
+    except Exception as e:
+        print(f"Feedback error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/feedback/stats', methods=['GET'])
+def get_feedback_stats():
+    """Get feedback statistics"""
+    stats = database.get_feedback_stats()
+    return jsonify(stats)
 
 @app.route('/api/model-info', methods=['GET'])
 def model_info():
