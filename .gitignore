@@ -77,4 +77,4 @@ model/checkpoints/
 # Project Specific
 visualizations/
 generate_visualizations.py
-plots/
+plots/!README.md
