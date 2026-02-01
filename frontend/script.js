@@ -8,6 +8,60 @@ const API_BASE_URL = ''; // Forced local execution
 
 
 
+// ==================== TOAST NOTIFICATION SYSTEM ====================
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    // Accessibility: Set role based on importance
+    if (type === 'error' || type === 'warning') {
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+    } else {
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+    }
+
+    // Icons based on type with aria-hidden
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '⛔';
+    if (type === 'warning') icon = '⚠️';
+
+    toast.innerHTML = `
+        <span class="toast-icon" aria-hidden="true">${icon}</span>
+        <span class="toast-message">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Play sound based on type
+    if (type === 'success') playSound('success');
+    if (type === 'error') playSound('alert');
+
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        toast.addEventListener('animationend', () => {
+            if (toast.parentElement) toast.remove();
+        });
+    }, 4000);
+}
+
+// ==================== FILE VALIDATION ====================
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+
+function validateFile(file) {
+    if (file.size > MAX_FILE_SIZE) {
+        showToast(`File "${file.name}" exceeds 100MB limit.`, 'error');
+        return false;
+    }
+    return true;
+}
+
 // ==================== AUDIO SYSTEM ====================
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -1782,46 +1836,62 @@ let currentUploadIndex = 0;
 
 // For analysis page only
 if (fileInput && uploadArea) {
-    // Update file input to handle multiple files
-    fileInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) {
-            addFilesToQueue(files);
+
+
+    // Enhanced drag and drop
+    // Drag & Drop Visuals - Stronger cues
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+
+        const fileCount = e.dataTransfer.items.length;
+        const badge = document.getElementById('fileCountBadge');
+        if (badge) {
+            badge.textContent = `${fileCount} file${fileCount > 1 ? 's' : ''} ready to drop`;
+            badge.style.display = 'block';
         }
     });
 
-    // Enhanced drag and drop
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('upload-area-active');
-        const fileCount = e.dataTransfer.items.length;
-        const badge = document.getElementById('fileCountBadge');
-        badge.textContent = `${fileCount} file${fileCount > 1 ? 's' : ''} ready`;
-        badge.style.display = 'block';
-    });
-
     uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('upload-area-active');
+        uploadArea.classList.remove('drag-over');
         const badge = document.getElementById('fileCountBadge');
-        badge.style.display = 'none';
+        if (badge) badge.style.display = 'none';
     });
 
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        uploadArea.classList.remove('upload-area-active');
+        uploadArea.classList.remove('drag-over');
         const badge = document.getElementById('fileCountBadge');
-        badge.style.display = 'none';
+        if (badge) badge.style.display = 'none';
 
-        // Allow both images and videos
-        const files = Array.from(e.dataTransfer.files).filter(f =>
-            f.type.startsWith('image/') || f.type.startsWith('video/')
-        );
+        const rawFiles = Array.from(e.dataTransfer.files);
 
-        if (files.length > 0) {
-            addFilesToQueue(files);
-        } else {
-            alert('Please drop image or video files only');
+        // Filter: Must be Image/Video AND under Size Limit
+        const validFiles = rawFiles.filter(f => {
+            const isMedia = f.type.startsWith('image/') || f.type.startsWith('video/');
+            if (!isMedia) {
+                showToast(`Skipped "${f.name}": Not an image or video.`, 'warning');
+                return false;
+            }
+            return validateFile(f);
+        });
+
+        if (validFiles.length > 0) {
+            addFilesToQueue(validFiles);
+            showToast(`${validFiles.length} file(s) added to queue`, 'success');
+        } // Warnings handled via Toast in loop
+    });
+
+    // File Input Change
+    fileInput.addEventListener('change', (e) => {
+        const rawFiles = Array.from(e.target.files);
+        const validFiles = rawFiles.filter(validateFile);
+
+        if (validFiles.length > 0) {
+            addFilesToQueue(validFiles);
+            showToast(`${validFiles.length} file(s) added to queue`, 'success');
         }
+        fileInput.value = ''; // Reset
     });
 }
 
@@ -1895,6 +1965,64 @@ function clearQueue() {
 
 function updateQueueCount() {
     document.getElementById('queueCount').textContent = uploadQueue.length;
+}
+
+
+// ==================== PROCESSING OVERLAY HELPERS ====================
+let processingTimerInterval;
+
+function showProcessingOverlay(isVideo = false) {
+    const overlay = document.getElementById('processingOverlay');
+    const progressBar = document.getElementById('processingProgressBar');
+    const timeLeft = document.getElementById('processingTimeLeft');
+    const statusText = document.getElementById('processingStatusText');
+
+    if (!overlay) return;
+
+    overlay.style.display = 'flex';
+
+    // Reset state
+    if (progressBar) progressBar.style.width = '0%';
+
+    // Simulated duration: 5s for image, 15s for video
+    const duration = isVideo ? 15000 : 5000;
+    let elapsed = 0;
+    const updateInterval = 100;
+
+    if (timeLeft) timeLeft.textContent = `${Math.ceil(duration / 1000)}s`;
+
+    clearInterval(processingTimerInterval);
+    processingTimerInterval = setInterval(() => {
+        elapsed += updateInterval;
+        const percent = Math.min((elapsed / duration) * 100, 95); // Cap at 95% until real completion
+        const remaining = Math.max(Math.ceil((duration - elapsed) / 1000), 1);
+
+        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (timeLeft) timeLeft.textContent = `${remaining}s`;
+
+        // Dynamic status text
+        if (statusText) {
+            if (percent < 30) statusText.textContent = "Preprocessing Media...";
+            else if (percent < 60) statusText.textContent = "Running DeepFake Detection Models...";
+            else if (percent < 80) statusText.textContent = "Analyzing Artifacts & Anomalies...";
+            else statusText.textContent = "Finalizing Forensic Report...";
+        }
+
+    }, updateInterval);
+}
+
+function hideProcessingOverlay() {
+    const overlay = document.getElementById('processingOverlay');
+    if (overlay) {
+        // Flash to 100% before hiding
+        const progressBar = document.getElementById('processingProgressBar');
+        if (progressBar) progressBar.style.width = '100%';
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            clearInterval(processingTimerInterval);
+        }, 500);
+    }
 }
 
 async function processUploadQueue() {
@@ -1991,7 +2119,9 @@ async function processUploadQueue() {
         }
 
         // Case 3: Multiple/Mixed/Errors -> Standard Alert & Clear
-        alert(`All files processed! ${completedFiles.length}/${uploadQueue.length} succeeded.`);
+        // alert(`All files processed! ${completedFiles.length}/${uploadQueue.length} succeeded.`);
+        showToast(`All files processed! ${completedFiles.length}/${uploadQueue.length} succeeded.`, 'success');
+
         if (uploadQueue.some(f => f.status !== 'completed')) {
             // Keep queue if errors exist
         } else {
@@ -2053,18 +2183,30 @@ async function uploadSingleFile(fileObj) {
                     if (progressStatus) {
                         progressStatus.textContent = `${speed.toFixed(1)} KB/s`;
                     }
+
+                    // Trigger Processing Overlay when upload completes
+                    if (percent >= 100) {
+                        const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv'];
+                        const isVideo = fileObj.file.type.startsWith('video/') || videoExtensions.some(ext => fileObj.file.name.toLowerCase().endsWith(ext));
+                        showProcessingOverlay(isVideo);
+                    }
                 }
             });
 
             xhr.addEventListener('load', () => {
                 if (xhr.status === 200) {
+                    hideProcessingOverlay();
                     resolve(JSON.parse(xhr.responseText));
                 } else {
+                    hideProcessingOverlay();
                     reject(new Error('Upload failed'));
                 }
             });
 
-            xhr.addEventListener('error', () => reject(new Error('Network error')));
+            xhr.addEventListener('error', () => {
+                hideProcessingOverlay();
+                reject(new Error('Network error'));
+            });
 
             // Determine endpoint based on file type
             const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv'];
@@ -2110,7 +2252,7 @@ async function uploadSingleFile(fileObj) {
         item.classList.remove('uploading');
         item.classList.add('error');
         statusEl.className = 'file-status error';
-        statusEl.textContent = '✗ Failed';
+        statusEl.textContent = '✖ Failed';
 
         const progressStatus = document.getElementById(`progress-status-${fileObj.id}`);
         if (progressStatus) progressStatus.textContent = error.message;
@@ -2188,91 +2330,120 @@ let fullHistoryData = [];
 let filteredHistoryData = [];
 let currentSortColumn = 'timestamp';
 let currentSortOrder = 'desc';
+let currentPage = 1;
+const itemsPerPage = 8;
+let currentView = 'list';
+let selectedIds = new Set();
 
 // Load and render history for the enhanced history page
 async function loadEnhancedHistory() {
     const tableBody = document.getElementById('historyTableBody');
+    const gridContainer = document.getElementById('historyGridContainer');
     const emptyState = document.getElementById('historyEmptyState');
-    const noResultsState = document.getElementById('noResultsState');
-    const tableContainer = document.getElementById('historyTable');
+    const table = document.getElementById('historyTable');
 
-    if (!tableBody) return; // Not on history page
+    if (!tableBody && !gridContainer) return;
+
+    showSkeletons();
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/history`);
         fullHistoryData = await response.json();
         filteredHistoryData = [...fullHistoryData];
 
-        document.getElementById('totalCount').textContent = fullHistoryData.length;
+        const totalCountEl = document.getElementById('totalCount');
+        if (totalCountEl) totalCountEl.textContent = fullHistoryData.length;
 
         if (fullHistoryData.length === 0) {
-            emptyState.style.display = 'flex';
-            tableContainer.style.display = 'none';
-            document.querySelector('.results-count').style.display = 'none';
+            if (emptyState) emptyState.style.display = 'flex';
+            if (table) table.style.display = 'none';
+            if (gridContainer) gridContainer.style.display = 'none';
         } else {
-            emptyState.style.display = 'none';
-            tableContainer.style.display = 'table';
-            document.querySelector('.results-count').style.display = 'block';
-            renderHistoryTable();
+            if (emptyState) emptyState.style.display = 'none';
+            applyFilters();
         }
     } catch (err) {
         console.error('Failed to load history:', err);
     }
 }
 
+function showSkeletons() {
+    const tableBody = document.getElementById('historyTableBody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = Array(5).fill(0).map(() => `
+        <tr>
+            <td><div class="skeleton-text" style="width: 20px"></div></td>
+            <td><div class="skeleton-img"></div></td>
+            <td><div class="skeleton-text"></div></td>
+            <td><div class="skeleton-text" style="width: 40px"></div></td>
+            <td><div class="skeleton-text" style="width: 100px"></div></td>
+            <td><div class="skeleton-text"></div></td>
+            <td><div class="skeleton-text" style="width: 60px"></div></td>
+        </tr>
+    `).join('');
+}
+
+function renderHistory() {
+    if (currentView === 'list') {
+        renderHistoryTable();
+    } else {
+        renderHistoryGrid();
+    }
+    renderPagination();
+}
+
 function renderHistoryTable() {
     const tableBody = document.getElementById('historyTableBody');
     const noResultsState = document.getElementById('noResultsState');
-    const tableContainer = document.getElementById('historyTable');
+    const table = document.getElementById('historyTable');
+    const gridContainer = document.getElementById('historyGridContainer');
 
     if (filteredHistoryData.length === 0) {
-        tableBody.innerHTML = '';
-        noResultsState.style.display = 'flex';
-        tableContainer.style.display = 'none';
-        document.getElementById('showingCount').textContent = '0';
+        if (tableBody) tableBody.innerHTML = '';
+        if (noResultsState) noResultsState.style.display = 'flex';
+        if (table) table.style.display = 'none';
         return;
     }
 
-    noResultsState.style.display = 'none';
-    tableContainer.style.display = 'table';
-    document.getElementById('showingCount').textContent = filteredHistoryData.length;
+    if (noResultsState) noResultsState.style.display = 'none';
+    if (gridContainer) gridContainer.style.display = 'none';
+    if (table) table.style.display = 'table';
 
-    tableBody.innerHTML = filteredHistoryData.map(item => {
+    const showingCountEl = document.getElementById('showingCount');
+    if (showingCountEl) showingCountEl.textContent = filteredHistoryData.length;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginatedData = filteredHistoryData.slice(start, start + itemsPerPage);
+
+    tableBody.innerHTML = paginatedData.map(item => {
         const isFake = item.prediction === 'FAKE';
         const date = new Date(item.timestamp).toLocaleString();
         const confidence = (item.confidence * 100).toFixed(1);
+        const isSelected = selectedIds.has(item.id);
 
         return `
             <tr data-id="${item.id}">
+                <td><input type="checkbox" class="item-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleItemSelection(${item.id}, this)"></td>
                 <td>
                     ${item.image_path ?
-                `<img src="/${item.image_path}" alt="${item.filename}" class="table-preview-img" onerror="this.style.display='none'">` :
+                `<img src="/${item.image_path}" alt="${item.filename}" class="table-preview-img" onclick="showPreviewModal(${item.id})" style="cursor: pointer">` :
                 '<div class="table-preview-img" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">📷</div>'
             }
                 </td>
-                <td class="table-filename" title="${item.filename}">${item.filename}</td>
-                <td>
-                    <span class="table-badge ${isFake ? 'fake' : 'real'}">
-                        ${isFake ? '⚠ FAKE' : '✓ REAL'}
-                    </span>
-                </td>
+                <td class="table-filename" title="${item.filename}" onclick="showPreviewModal(${item.id})" style="cursor: pointer">${item.filename}</td>
+                <td><span class="table-badge ${isFake ? 'fake' : 'real'}">${isFake ? '⚠ FAKE' : '✓ REAL'}</span></td>
                 <td>
                     <div class="table-confidence">
                         <span>${confidence}%</span>
-                        <div class="confidence-bar-small">
-                            <div class="confidence-fill-small" style="width: ${confidence}%"></div>
-                        </div>
+                        <div class="confidence-bar-small"><div class="confidence-fill-small" style="width: ${confidence}%"></div></div>
                     </div>
                 </td>
                 <td class="table-date">${date}</td>
                 <td>
                     <div class="table-actions">
-                        <button class="btn-table-action" onclick="generateHistoryPDF(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                            📄 Report
-                        </button>
-                        <button class="btn-table-action btn-table-delete" onclick="deleteHistoryItem(${item.id})">
-                            🗑 Delete
-                        </button>
+                        <button class="btn-table-action" onclick="showPreviewModal(${item.id})">🔍 View</button>
+                        <button class="btn-table-action btn-table-delete" onclick="deleteHistoryItem(${item.id})">🗑 Delete</button>
                     </div>
                 </td>
             </tr>
@@ -2280,320 +2451,367 @@ function renderHistoryTable() {
     }).join('');
 }
 
-// Search functionality with debouncing
+function renderHistoryGrid() {
+    const gridContainer = document.getElementById('historyGridContainer');
+    const table = document.getElementById('historyTable');
+    const noResultsState = document.getElementById('noResultsState');
+
+    if (filteredHistoryData.length === 0) {
+        if (gridContainer) gridContainer.innerHTML = '';
+        if (noResultsState) noResultsState.style.display = 'flex';
+        if (gridContainer) gridContainer.style.display = 'none';
+        return;
+    }
+
+    if (noResultsState) noResultsState.style.display = 'none';
+    if (table) table.style.display = 'none';
+    if (gridContainer) gridContainer.style.display = 'grid';
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginatedData = filteredHistoryData.slice(start, start + itemsPerPage);
+
+    gridContainer.innerHTML = paginatedData.map(item => {
+        const isFake = item.prediction === 'FAKE';
+        const isSelected = selectedIds.has(item.id);
+
+        return `
+            <div class="grid-card ${isSelected ? 'selected' : ''}" data-id="${item.id}">
+                <div style="position: absolute; top: 10px; left: 10px; z-index: 5;">
+                    <input type="checkbox" onchange="toggleItemSelection(${item.id}, this)" ${isSelected ? 'checked' : ''}>
+                </div>
+                ${item.image_path ?
+                `<img src="/${item.image_path}" alt="${item.filename}" class="grid-preview" onclick="showPreviewModal(${item.id})">` :
+                '<div class="grid-preview" style="background: #222; display: flex; align-items: center; justify-content: center;">📷</div>'
+            }
+                <div class="grid-content">
+                    <div class="grid-header">
+                        <span class="table-badge ${isFake ? 'fake' : 'real'}">${isFake ? 'FAKE' : 'REAL'}</span>
+                        <span class="grid-date">${new Date(item.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div class="grid-title">${item.filename}</div>
+                    <div class="table-confidence">
+                        <span style="font-size: 12px">${(item.confidence * 100).toFixed(1)}%</span>
+                        <div class="confidence-bar-small" style="flex: 1"><div class="confidence-fill-small" style="width: ${item.confidence * 100}%"></div></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderPagination() {
+    const totalPages = Math.ceil(filteredHistoryData.length / itemsPerPage) || 1;
+    const totalEl = document.getElementById('totalPages');
+    const currentEl = document.getElementById('currentPage');
+    if (totalEl) totalEl.textContent = totalPages;
+    if (currentEl) currentEl.textContent = currentPage;
+
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+}
+
+function changePage(delta) {
+    currentPage += delta;
+    renderHistory();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleView(mode) {
+    currentView = mode;
+    const listBtn = document.getElementById('listViewBtn');
+    const gridBtn = document.getElementById('gridViewBtn');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'list');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    renderHistory();
+}
+
+function setQuickFilter(type, el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    const predictionSelect = document.getElementById('filterPrediction');
+    const confidenceSelect = document.getElementById('filterConfidence');
+
+    if (predictionSelect && confidenceSelect) {
+        if (type === 'all') { predictionSelect.value = 'all'; confidenceSelect.value = 'all'; }
+        else if (type === 'FAKE' || type === 'REAL') { predictionSelect.value = type; confidenceSelect.value = 'all'; }
+        else if (type === 'high') { predictionSelect.value = 'all'; confidenceSelect.value = 'high'; }
+    }
+
+    currentPage = 1;
+    applyFilters();
+}
+
 let searchTimeout;
 function handleSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
+        currentPage = 1;
         applyFilters();
     }, 300);
 }
 
-// Apply all filters
 function applyFilters() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const predictionFilter = document.getElementById('filterPrediction').value;
-    const confidenceFilter = document.getElementById('filterConfidence').value;
-    const sortBy = document.getElementById('sortBy').value;
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const predictionFilter = document.getElementById('filterPrediction')?.value || 'all';
+    const confidenceFilter = document.getElementById('filterConfidence')?.value || 'all';
+    const sortBy = document.getElementById('sortBy')?.value || 'date-desc';
 
-    // Start with full data
     filteredHistoryData = fullHistoryData.filter(item => {
-        // Search filter
-        if (searchTerm && !item.filename.toLowerCase().includes(searchTerm)) {
-            return false;
-        }
-
-        // Prediction filter
-        if (predictionFilter !== 'all' && item.prediction !== predictionFilter) {
-            return false;
-        }
-
-        // Confidence filter
+        if (searchTerm && !item.filename.toLowerCase().includes(searchTerm)) return false;
+        if (predictionFilter !== 'all' && item.prediction !== predictionFilter) return false;
         if (confidenceFilter !== 'all') {
             const conf = item.confidence * 100;
             if (confidenceFilter === 'high' && conf <= 80) return false;
             if (confidenceFilter === 'medium' && (conf < 50 || conf > 80)) return false;
             if (confidenceFilter === 'low' && conf >= 50) return false;
         }
-
         return true;
     });
 
-    // Apply sorting
-    const [sortColumn, sortOrder] = sortBy.split('-');
-    sortHistoryData(sortColumn, sortOrder);
-
-    renderHistoryTable();
+    const [col, ord] = sortBy.split('-');
+    sortHistoryData(col, ord);
+    renderHistory();
 }
 
-// Sort functionality
 function sortHistoryData(column, order) {
     currentSortColumn = column;
     currentSortOrder = order;
-
     filteredHistoryData.sort((a, b) => {
         let aVal, bVal;
-
         switch (column) {
-            case 'filename':
-                aVal = a.filename.toLowerCase();
-                bVal = b.filename.toLowerCase();
-                break;
-            case 'confidence':
-                aVal = a.confidence;
-                bVal = b.confidence;
-                break;
-            case 'prediction':
-                aVal = a.prediction;
-                bVal = b.prediction;
-                break;
-            case 'date':
-            default:
-                aVal = new Date(a.timestamp).getTime();
-                bVal = new Date(b.timestamp).getTime();
-                break;
+            case 'filename': aVal = a.filename.toLowerCase(); bVal = b.filename.toLowerCase(); break;
+            case 'confidence': aVal = a.confidence; bVal = b.confidence; break;
+            case 'prediction': aVal = a.prediction; bVal = b.prediction; break;
+            default: aVal = new Date(a.timestamp || 0).getTime(); bVal = new Date(b.timestamp || 0).getTime(); break;
         }
-
-        if (order === 'asc') {
-            return aVal > bVal ? 1 : -1;
-        } else {
-            return aVal < bVal ? 1 : -1;
-        }
+        const res = aVal > bVal ? 1 : -1;
+        return order === 'asc' ? res : -res;
     });
 }
 
-// Alternative table header sort (if clicking headers directly)
 function sortTable(column) {
-    // Toggle order if same column
-    if (currentSortColumn === column) {
-        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-        currentSortColumn = column;
-        currentSortOrder = 'desc';
-    }
-
+    if (currentSortColumn === column) currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    else { currentSortColumn = column; currentSortOrder = 'desc'; }
     sortHistoryData(currentSortColumn, currentSortOrder);
-    updateSortIndicators();
-    renderHistoryTable();
+    renderHistory();
 }
 
-function updateSortIndicators() {
-    document.querySelectorAll('.sort-indicator').forEach(indicator => {
-        indicator.classList.remove('active', 'asc', 'desc');
-    });
+// ==================== BATCH ACTIONS & MODAL ====================
 
-    // Find the right column and update
-    const headers = document.querySelectorAll('.history-table th');
-    headers.forEach(th => {
-        const text = th.textContent.toLowerCase();
-        if (text.includes(currentSortColumn) ||
-            (currentSortColumn === 'timestamp' && text.includes('date'))) {
-            const indicator = th.querySelector('.sort-indicator');
-            if (indicator) {
-                indicator.classList.add('active', currentSortOrder);
-            }
-        }
-    });
-}
-
-// Delete individual item
-async function deleteHistoryItem(id) {
-    // Confirmation removed as per user request
-
-
-    const row = document.querySelector(`tr[data-id="${id}"]`);
-    if (row) {
-        row.style.opacity = '0';
-        row.style.transform = 'scale(0.95)';
+function toggleItemSelection(id, checkbox) {
+    if (checkbox.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    updateSelectedCount();
+    if (currentView === 'grid') {
+        const card = document.querySelector(`.grid-card[data-id='${id}']`);
+        if (card) card.classList.toggle('selected', checkbox.checked);
     }
+}
+
+function toggleSelectAll(checkbox) {
+    const start = (currentPage - 1) * itemsPerPage;
+    const visibleData = filteredHistoryData.slice(start, start + itemsPerPage);
+    visibleData.forEach(item => {
+        if (checkbox.checked) selectedIds.add(item.id);
+        else selectedIds.delete(item.id);
+    });
+    renderHistory();
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const bar = document.getElementById('batchActionsBar');
+    const countEl = document.getElementById('selectedCount');
+    if (!bar || !countEl) return;
+    countEl.textContent = selectedIds.size;
+    if (selectedIds.size > 0) bar.classList.add('active');
+    else {
+        bar.classList.remove('active');
+        const selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+    }
+}
+
+function clearSelection() {
+    selectedIds.clear();
+    updateSelectedCount();
+    renderHistory();
+}
+
+async function batchDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} items?`)) return;
+
+    for (const id of selectedIds) {
+        await fetch(`${API_BASE_URL}/api/history/${id}`, { method: 'DELETE' }).catch(console.error);
+    }
+
+    showToast(`Processed batch deletion`, 'success');
+    selectedIds.clear();
+    updateSelectedCount();
+    loadEnhancedHistory();
+}
+
+function batchExport(format) {
+    const dataToExport = fullHistoryData.filter(item => selectedIds.has(item.id));
+    if (dataToExport.length === 0) return;
+    performExport(dataToExport, format, `batch_export_${format}`);
+}
+
+function exportHistory(format) {
+    if (filteredHistoryData.length === 0) {
+        showToast('No data to export', 'warning');
+        return;
+    }
+    performExport(filteredHistoryData, format, `history_export_${format}`);
+}
+
+function performExport(data, format, filename) {
+    let content, mime;
+    if (format === 'csv') {
+        content = 'ID,Filename,Prediction,Confidence,Date,Notes,Tags\n' +
+            data.map(i => `${i.id},"${i.filename}",${i.prediction},${i.confidence},"${i.timestamp}","${i.notes || ''}","${i.tags || ''}"`).join('\n');
+        mime = 'text/csv';
+    } else {
+        content = JSON.stringify(data, null, 2);
+        mime = 'application/json';
+    }
+
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${filename}.${format}`; a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${data.length} items`, 'success');
+}
+
+function showPreviewModal(id) {
+    const item = fullHistoryData.find(i => i.id === id);
+    if (!item) return;
+
+    const modal = document.getElementById('previewModal');
+    const body = document.getElementById('modalBody');
+    const isFake = item.prediction === 'FAKE';
+    const confidence = (item.confidence * 100).toFixed(1);
+
+    if (body) {
+        body.innerHTML = `
+            <div class="modal-media-container">
+                ${item.image_path ?
+                (item.image_path.toLowerCase().endsWith('.mp4') || item.image_path.toLowerCase().endsWith('.mov') ?
+                    `<video src="/${item.image_path}" class="modal-media" controls></video>` :
+                    `<img src="/${item.image_path}" class="modal-media" alt="Preview">`) :
+                '<div class="modal-media" style="background: #222; aspect-ratio: 1; display:flex; align-items:center; justify-content:center; font-size:40px;">📷</div>'}
+            </div>
+            <div class="modal-details">
+                <h2 class="modal-title">${item.filename}</h2>
+                <div class="history-card-header">
+                    <span class="table-badge ${isFake ? 'fake' : 'real'}">${isFake ? '⚠ FAKE' : '✓ REAL'}</span>
+                    <span class="history-date">${new Date(item.timestamp).toLocaleString()}</span>
+                </div>
+                
+                <div class="modal-stats">
+                    <div class="table-confidence">
+                        <span style="font-size: 18px; font-weight: 700;">${confidence}% Confidence</span>
+                        <div class="confidence-bar-small" style="flex: 1; height: 10px;">
+                            <div class="confidence-fill-small" style="width: ${confidence}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notes-section">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Notes</label>
+                    <textarea id="modalNotes" class="notes-area" placeholder="Add your notes here...">${item.notes || ''}</textarea>
+                    <button class="btn-save-notes" onclick="saveNotes(${item.id})">Save Notes</button>
+                </div>
+            </div>
+        `;
+    }
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeModal(event) {
+    if (!event || event.target.id === 'previewModal' || event.target.classList.contains('modal-close')) {
+        const modal = document.getElementById('previewModal');
+        if (modal) modal.style.display = 'none';
+    }
+}
+
+async function saveNotes(id) {
+    const notesArea = document.getElementById('modalNotes');
+    if (!notesArea) return;
+    const notes = notesArea.value;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/history/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes: notes })
+        });
+        if (response.ok) {
+            showToast('Notes saved', 'success');
+            const item = fullHistoryData.find(i => i.id === id);
+            if (item) item.notes = notes;
+        } else showToast('Save failed', 'error');
+    } catch (err) { console.error(err); showToast('Error saving', 'error'); }
+}
+
+async function deleteHistoryItem(id) {
+    const row = document.querySelector(`tr[data-id="${id}"]`) || document.querySelector(`.grid-card[data-id="${id}"]`);
+    if (row) { row.style.opacity = '0'; row.style.transform = 'scale(0.95)'; }
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/history/${id}`, { method: 'DELETE' });
         if (response.ok) {
             setTimeout(() => {
                 fullHistoryData = fullHistoryData.filter(item => item.id !== id);
+                selectedIds.delete(id);
+                updateSelectedCount();
                 applyFilters();
-
-                // Check if history is now empty
-                if (fullHistoryData.length === 0) {
-                    document.getElementById('historyEmptyState').style.display = 'flex';
-                    document.getElementById('historyTable').style.display = 'none';
-                    document.querySelector('.results-count').style.display = 'none';
-                }
             }, 300);
-        }
+        } else if (row) { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }
     } catch (err) {
-        console.error('Failed to delete item:', err);
-        if (row) {
-            row.style.opacity = '1';
-            row.style.transform = 'scale(1)';
-        }
+        console.error(err);
+        if (row) { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }
     }
 }
 
-// Clear all history
 function confirmClearAll() {
-    // Confirmation removed as per user request
-    clearHistory();
+    if (!confirm('Clear ALL history? This cannot be undone.')) return;
+    fetch(`${API_BASE_URL}/api/history`, { method: 'DELETE' })
+        .then(res => {
+            if (res.ok) {
+                fullHistoryData = [];
+                applyFilters();
+                showToast('History cleared', 'success');
+            }
+        })
+        .catch(console.error);
 }
 
-// Export functions
-function exportHistory(format) {
-    if (filteredHistoryData.length === 0) {
-        alert('No data to export. Please run some analyses first.');
-        return;
-    }
-
-    if (format === 'csv') {
-        exportToCSV();
-    } else if (format === 'json') {
-        exportToJSON();
-    }
-}
-
-function exportToCSV() {
-    const headers = ['ID', 'Filename', 'Prediction', 'Confidence', 'Fake Probability', 'Real Probability', 'Timestamp'];
-    const rows = filteredHistoryData.map(item => [
-        item.id,
-        `"${item.filename}"`,
-        item.prediction,
-        item.confidence.toFixed(4),
-        item.fake_probability ? item.fake_probability.toFixed(4) : 'N/A',
-        item.real_probability ? item.real_probability.toFixed(4) : 'N/A',
-        item.timestamp
-    ]);
-
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    downloadFile(csvContent, 'deepguard_history.csv', 'text/csv');
-}
-
-function exportToJSON() {
-    const jsonContent = JSON.stringify(filteredHistoryData, null, 2);
-    downloadFile(jsonContent, 'deepguard_history.json', 'application/json');
-}
-
-function downloadFile(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    // Show success message
-    playSound('success');
-    const format = filename.split('.').pop().toUpperCase();
-    setTimeout(() => {
-        console.log(`✅ Exported ${filteredHistoryData.length} records to ${format} successfully!`);
-    }, 100);
-}
-
-// Event listeners for history page
+// Initial Hook
 if (window.location.pathname.includes('history.html')) {
-    window.addEventListener('load', () => {
-        loadEnhancedHistory();
-
-        // Attach event listeners
-        const searchInput = document.getElementById('searchInput');
-        const filterPrediction = document.getElementById('filterPrediction');
-        const filterConfidence = document.getElementById('filterConfidence');
-        const sortBy = document.getElementById('sortBy');
-
-        if (searchInput) searchInput.addEventListener('input', handleSearch);
-        if (filterPrediction) filterPrediction.addEventListener('change', applyFilters);
-        if (filterConfidence) filterConfidence.addEventListener('change', applyFilters);
-        if (sortBy) sortBy.addEventListener('change', applyFilters);
-    });
+    window.addEventListener('load', loadEnhancedHistory);
 }
 
-// Loading screen removed
-
-// ==================== VIDEO DEMO PLAYER ====================
+// --- Video Demo Player ---
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('demoVideoPlayer');
     const playOverlay = document.getElementById('playOverlay');
-    const progressBar = document.getElementById('videoProgress');
-
     if (video && playOverlay) {
-        const playlist = [
-            'assets/demo_part1.mov',
-            'assets/demo_part2.mov'
-        ];
-        let currentVideoIndex = 0;
-
-        // Play Toggle
         playOverlay.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-                playOverlay.classList.add('hidden');
-            } else {
-                video.pause();
-                playOverlay.classList.remove('hidden');
-            }
+            if (video.paused) { video.play(); playOverlay.classList.add('hidden'); }
+            else { video.pause(); playOverlay.classList.remove('hidden'); }
         });
-
-        video.addEventListener('click', () => {
-            if (!video.paused) {
-                video.pause();
-                playOverlay.classList.remove('hidden');
-            }
-        });
-
-        // Update Progress
-        video.addEventListener('timeupdate', () => {
-            const percent = (video.currentTime / video.duration) * 100;
-            if (progressBar) progressBar.style.width = `${percent}%`;
-        });
-
-        // Handle Sequential Playback
-        video.addEventListener('ended', () => {
-            currentVideoIndex++;
-            if (currentVideoIndex < playlist.length) {
-                // Play next video
-                video.src = playlist[currentVideoIndex];
-                video.play().then(() => {
-                    // Ensure overlay stays hidden
-                    playOverlay.classList.add('hidden');
-                }).catch(e => console.error("Auto-play blocked:", e));
-            } else {
-                // Playlist finished, reset
-                currentVideoIndex = 0;
-                video.src = playlist[0];
-                playOverlay.classList.remove('hidden'); // Show play button again
-                if (progressBar) progressBar.style.width = '0%';
-            }
-        });
-
-        // Auto-play when in view
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && video.paused) {
-                    video.play().then(() => {
-                        playOverlay.classList.add('hidden');
-                    }).catch(e => console.log("Autoplay prevented by browser interaction policy"));
-                } else if (!entry.isIntersecting && !video.paused) {
-                    video.pause();
-                    playOverlay.classList.remove('hidden');
-                }
-            });
-        }, { threshold: 0.5 }); // Start when 50% visible
-
-        observer.observe(video);
     }
 });
-
-// ==================== NEW UI LOGIC ====================
 
 // --- Toast Notifications ---
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
 
@@ -2608,169 +2826,9 @@ function showToast(message, type = 'info') {
     `;
 
     container.appendChild(toast);
-
-    // Trigger animation
-    requestAnimationFrame(() => {
-        toast.classList.add('show');
-    });
-
-    // Auto remove
+    requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
-
-// --- Upload Progress Simulation ---
-function updateUploadProgress(percent) {
-    const container = document.getElementById('uploadProgressContainer');
-    const bar = document.getElementById('uploadProgressBar');
-    const text = document.getElementById('uploadProgressText');
-
-    if (percent === 0) {
-        container.style.display = 'block';
-    }
-
-    bar.style.width = `${percent}%`;
-    text.textContent = `${Math.round(percent)}%`;
-
-    if (percent >= 100) {
-        setTimeout(() => {
-            container.style.display = 'none';
-        }, 500);
-    }
-}
-
-// --- Skeleton Loader ---
-function toggleSkeleton(show) {
-    const skeleton = document.getElementById('skeletonLoader');
-    const emptyState = document.getElementById('emptyState');
-    const results = document.querySelector('.analysis-results');
-
-    if (show) {
-        emptyState.style.display = 'none';
-        results.style.display = 'none';
-        skeleton.style.display = 'block';
-    } else {
-        skeleton.style.display = 'none';
-        // Results will be shown by updateAnalysisUI
-    }
-}
-
-// --- Confetti Effect ---
-function triggerConfetti() {
-    const container = document.getElementById('confetti-container');
-    const colors = ['#E3F514', '#10b981', '#3b82f6', '#ec4899'];
-
-    for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = `${Math.random() * 100}vw`;
-        confetti.style.top = '-10px';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
-
-        container.appendChild(confetti);
-
-        setTimeout(() => confetti.remove(), 5000);
-    }
-}
-
-// Add keyframes for confetti if not exists
-const styleSheet = document.createElement("style");
-styleSheet.innerText = `
-@keyframes fall {
-    to { transform: translateY(100vh) rotate(720deg); }
-}
-`;
-document.head.appendChild(styleSheet);
-
-
-// --- Load Recent Analyses ---
-async function loadRecentAnalyses() {
-    const grid = document.getElementById('recentGrid');
-    if (!grid) return;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/history`);
-        const history = await response.json();
-
-        // Take last 4
-        const recent = history.slice(0, 4);
-
-        grid.innerHTML = recent.map(item => {
-            const isFake = item.prediction === 'FAKE';
-            return `
-            <div class="recent-card" data-type="${isFake ? 'fake' : 'real'}">
-                <div class="recent-card-header">
-                    <span class="recent-badge ${isFake ? 'fake' : 'real'}">${isFake ? 'FAKE' : 'REAL'}</span>
-                    <span class="recent-date">${new Date(item.timestamp).toLocaleDateString()}</span>
-                </div>
-                <h4 class="recent-card-title">${item.filename}</h4>
-                <div class="recent-confidence">
-                    <span class="recent-confidence-label">${(item.confidence * 100).toFixed(0)}% Confidence</span>
-                    <div class="recent-confidence-bar">
-                        <div class="recent-confidence-fill" style="width: ${item.confidence * 100}%"></div>
-                    </div>
-                </div>
-            </div>
-            `;
-        }).join('');
-
-        if (recent.length === 0) {
-            grid.innerHTML = '<div class="recent-grid-empty">No recent analyses found</div>';
-        }
-
-    } catch (e) {
-        console.error("Failed to load recent history", e);
-    }
-}
-
-// --- Filter History ---
-function filterHistory(type) {
-    const cards = document.querySelectorAll('.recent-card');
-    const buttons = document.querySelectorAll('.btn-filter');
-
-    // Update buttons
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    cards.forEach(card => {
-        if (type === 'all' || card.dataset.type === type) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// --- Export Results ---
-function exportResults() {
-    const verdict = document.getElementById('verdictTitle').textContent;
-    const confidence = document.getElementById('confidenceValue').textContent;
-    const scanTime = document.getElementById('scanTimeDisplay').textContent;
-
-    const data = {
-        verdict,
-        confidence,
-        scanTime,
-        timestamp: new Date().toISOString(),
-        agent: "DeepGuard AI"
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "analysis_result.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-
-    showToast('Results exported successfully', 'success');
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadRecentAnalyses();
-});
-

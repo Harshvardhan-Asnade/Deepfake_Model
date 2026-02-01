@@ -33,12 +33,24 @@ def init_db():
         except sqlite3.Error as e:
             print(f"Error initializing database: {e}")
         
-        # Migration: Add image_path if not exists
+        # Migration: Add image_path, notes, tags if not exists
         try:
             conn.execute('ALTER TABLE history ADD COLUMN image_path TEXT')
             print("✅ Added image_path column.")
         except sqlite3.Error:
             pass # Column likely exists
+
+        try:
+            conn.execute('ALTER TABLE history ADD COLUMN notes TEXT')
+            print("✅ Added notes column.")
+        except sqlite3.Error:
+            pass
+
+        try:
+            conn.execute('ALTER TABLE history ADD COLUMN tags TEXT')
+            print("✅ Added tags column.")
+        except sqlite3.Error:
+            pass
             
         finally:
             conn.close()
@@ -97,6 +109,34 @@ def delete_scan(scan_id):
             return True
         except sqlite3.Error as e:
             print(f"Error deleting scan: {e}")
+            return False
+        finally:
+            conn.close()
+    return False
+
+def update_scan(scan_id, data):
+    conn = get_db_connection()
+    if conn:
+        try:
+            fields = []
+            values = []
+            if 'notes' in data:
+                fields.append("notes = ?")
+                values.append(data['notes'])
+            if 'tags' in data:
+                fields.append("tags = ?")
+                values.append(data['tags'])
+            
+            if not fields:
+                return True
+                
+            values.append(scan_id)
+            query = f"UPDATE history SET {', '.join(fields)} WHERE id = ?"
+            conn.execute(query, tuple(values))
+            conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Error updating scan: {e}")
             return False
         finally:
             conn.close()
