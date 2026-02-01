@@ -5,7 +5,7 @@
 // Automatically select between Localhost and Production
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:7860'
-    : 'https://harshasnade-deepfake-detection.hf.space'; // Hugging Face Direct URL
+    : 'https://harshasnade-deepfake-detection-model.hf.space';
 
 
 

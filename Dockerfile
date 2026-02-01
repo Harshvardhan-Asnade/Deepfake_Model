@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.10
 
 # Set working directory to /code
 WORKDIR /code
@@ -8,7 +8,7 @@ COPY backend/requirements_web.txt /code/requirements.txt
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
