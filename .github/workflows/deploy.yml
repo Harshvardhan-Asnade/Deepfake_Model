@@ -25,4 +25,4 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "GitHub Actions"
           git remote add space https://oauth2:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE_NAME
-          git push --force space main
+          git push --force space HEAD:main
