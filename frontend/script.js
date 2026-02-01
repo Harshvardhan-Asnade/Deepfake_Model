@@ -7,6 +7,36 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
     ? 'http://localhost:7860'
     : 'https://harshasnade-deepfake-detection-model.hf.space';
 
+// ==================== BACKEND COLD START HANDLER ====================
+async function checkBackendHealth(retries = 30) {
+    const healthUrl = `${API_BASE_URL}/api/health`;
+
+    try {
+        const response = await fetch(healthUrl, { method: 'GET' });
+        if (response.ok) {
+            console.log('✅ Backend is ready!');
+            return true;
+        }
+    } catch (error) {
+        console.warn('Backend sleeping or unreachable...');
+    }
+
+    if (retries > 0) {
+        showToast('⏳ Model is waking up from sleep. Please wait...', 'info');
+        // Retry every 5 seconds
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        return checkBackendHealth(retries - 1);
+    }
+
+    showToast('❌ Backend failed to start. Please refresh.', 'error');
+    return false;
+}
+
+// Check status immediately on load
+document.addEventListener('DOMContentLoaded', () => {
+    checkBackendHealth();
+});
+
 
 
 // ==================== TOAST NOTIFICATION SYSTEM ====================
