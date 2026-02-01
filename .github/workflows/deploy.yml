@@ -3,7 +3,6 @@ name: Sync to Hugging Face Spaces
 on:
   push:
     branches: [main, master, Harshvardhan]
-  # Allow manual trigger
   workflow_dispatch:
 
 jobs:
@@ -15,24 +14,13 @@ jobs:
           fetch-depth: 1
           lfs: true
 
-      - name: Push to Hub
+      - name: Install HuggingFace CLI
+        run: pip install -U "huggingface_hub[cli]"
+
+      - name: Upload to Hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          # Replace with your HF Space username and name
-          # Format: user/space-name
           HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
         run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Actions"
-          git remote add space https://oauth2:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE_NAME
-          
-          # Strategies to fix "Shared History" and "Shallow" errors:
-          # 1. Switch to a new orphan branch (orphans have no history).
-          git checkout --orphan force-deploy
-          # 2. Stage all files (this respects .gitattributes for LFS).
-          git add --all
-          # 3. Commit as a fresh 'init' commit.
-          git commit -m "Deploy to HuggingFace"
-          
-          # 4. Force push this fresh history to the space
-          git push --force space force-deploy:main
+          # Use the CLI to upload the files directly, bypassing Git history issues
+          huggingface-cli upload $HF_SPACE_NAME . . --repo-type space --token $HF_TOKEN --exclude ".git/*" ".github/*"
