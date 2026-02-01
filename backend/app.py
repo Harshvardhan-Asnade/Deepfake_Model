@@ -52,8 +52,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Increase to 500MB for video
 
 # Global model and transform
+# Global model and transform
 device = torch.device(Config.DEVICE)
 model = None
+video_model_onnx = None # Dedicated optimized model for video
 transform = None
 
 def get_transform():
@@ -65,53 +67,41 @@ def get_transform():
 
 def load_model():
     """Load the trained deepfake detection model"""
-    global model, transform
+    global model, transform, video_model_onnx
     
     checkpoint_dir = Config.CHECKPOINT_DIR
-    # Explicitly target the model requested by the user
-    target_model_name = "Mark-IV.safetensors"
+    target_model_name = "Mark-V.safetensors"
     checkpoint_path = os.path.join(checkpoint_dir, target_model_name)
     
     print(f"Using device: {device}")
     
-    # Initialize with pretrained=True to ensure missing keys (frozen layers) have valid ImageNet weights
-    # instead of random noise. This fixes the "random prediction" issue when the checkpoint 
-    # only contains finetuned layers.
+    # 1. Load PyTorch Model (Required for single image Image Heatmaps)
     model = DeepfakeDetector(pretrained=True)
     model.to(device)
     model.eval()
     
-    # Check if file exists first
     if not os.path.exists(checkpoint_path):
         print(f"❌ CRITICAL ERROR: Model file not found at: {checkpoint_path}")
-        print(f"Please ensure '{target_model_name}' exists in '{checkpoint_dir}'")
         model = None
         transform = get_transform()
         return model, transform
 
     try:
-        print(f"Loading checkpoint: {checkpoint_path}")
+        print(f"Loading PyTorch checkpoint: {checkpoint_path}")
         if checkpoint_path.endswith(".safetensors") and SAFETENSORS_AVAILABLE:
             state_dict = load_file(checkpoint_path)
         else:
             state_dict = torch.load(checkpoint_path, map_location=device)
-            
-        # Use strict=False because the checkpoint might be a partial save (e.g. only finetuned layers)
-        # or there might be minor architecture mismatches.
-        # Since we use pretrained=True, the missing keys will remain as ImageNet weights (valid features).
-        missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
-        
-        print(f"✅ Model loaded successfully!")
-        if missing_keys:
-            print(f"ℹ️  {len(missing_keys)} keys missing from checkpoint (using pretrained defaults).")
-        if unexpected_keys:
-            print(f"ℹ️  {len(unexpected_keys)} unexpected keys in checkpoint.")
-        
+        model.load_state_dict(state_dict, strict=False)
+        print(f"✅ PyTorch Model loaded successfully!")
     except Exception as e:
-        print(f"❌ Error loading checkpoint: {e}")
-        print("Predictions will fail until this is resolved.")
+        print(f"❌ Error loading PyTorch checkpoint: {e}")
         model = None
-    
+
+    # 2. Load ONNX Model (Removed)
+    # System optimized for PyTorch Pipeline (Threaded Preprocessing)
+    video_model_onnx = None
+
     transform = get_transform()
     return model, transform
 
@@ -393,12 +383,13 @@ def predict_video():
         filepath = reencode_video(filepath)
         
         # Process Video
-        # Note: process_video needs sys.path to be correct to import models inside it if it was standalone,
-        # but here we pass the already loaded 'model' object.
-        if model is None:
+        # Prioritize Optimized ONNX Model
+        active_model = video_model_onnx if video_model_onnx is not None else model
+        
+        if active_model is None:
              return jsonify({'error': 'Model not loaded'}), 500
              
-        result = video_inference.process_video(filepath, model, transform, device, frames_per_second=20)
+        result = video_inference.process_video(filepath, active_model, transform, device, frames_per_second=10)
         
         if "error" in result:
              return jsonify(result), 500
