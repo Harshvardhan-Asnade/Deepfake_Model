@@ -23,4 +23,4 @@ jobs:
           HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
         run: |
           # Use the CLI to upload the files directly, bypassing Git history issues
-          huggingface-cli upload $HF_SPACE_NAME . . --repo-type space --token $HF_TOKEN --exclude ".git/*" ".github/*"
+          python -m huggingface_hub.cli upload $HF_SPACE_NAME . . --repo-type space --token $HF_TOKEN --exclude ".git/*" ".github/*"
