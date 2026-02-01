@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="video_player.css">
     <link rel="stylesheet" href="extension.css">
     <link rel="stylesheet" href="scroll_indicator.css">
+    <link rel="stylesheet" href="orbit.css">
 </head>
 
 <body>
@@ -267,57 +268,38 @@
                         class="gradient-text">Features</span></h2>
                 <p class="section-subtitle">Advanced technology powering the next generation of deepfake detection</p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
-                    <div class="feature-icon icon-ai">
-                        <img src="deep_learning_icon.png" alt="Deep Learning"
-                            style="width: 100%; height: 100%; object-fit: contain;">
-                    </div>
-                    <h3 class="feature-title">Hybrid Fusion Architecture</h3>
-                    <p class="feature-description">Combines EfficientNetV2 for spatial details and Swin Transformer V2
-                        for global context with Frequency domain analysis.</p>
-                    <div class="feature-tags">
-                        <span class="tag">Hybrid CNN-ViT</span>
-                        <span class="tag">Multi-Modal</span>
-                    </div>
+            <!-- 3D Orbiting Features -->
+            <div class="orbit-container" id="orbitContainer">
+                <!-- Info Card (STAYS 2D - OUTSIDE TILTED STAGE) -->
+                <div class="orbit-info-card" id="orbitInfoCard">
+                    <h3 class="orbit-info-title" id="orbitTitle">Feature Info</h3>
+                    <p class="orbit-info-desc" id="orbitDesc">Hover over a node to explore our capabilities.</p>
+                    <div class="orbit-info-tags" id="orbitTags"></div>
                 </div>
-                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
-                    <div class="feature-icon icon-speed">
-                        <img src="realtime_analysis_icon.png" alt="Real-Time Analysis"
-                            style="width: 100%; height: 100%; object-fit: contain;">
+
+                <div class="orbit-stage">
+                    <div class="orbit-hub">
+                        <div class="orbit-hub-inner">🛡️</div>
                     </div>
-                    <h3 class="feature-title">Real-Time Analysis</h3>
-                    <p class="feature-description">Lightning-fast detection processing thousands of images per minute
-                        with GPU acceleration</p>
-                    <div class="feature-tags">
-                        <span class="tag">CUDA Optimized</span>
-                        <span class="tag">Batch Processing</span>
-                    </div>
-                </div>
-                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
-                    <div class="feature-icon icon-shield">
-                        <img src="accuracy_icon.png" alt="Accuracy"
-                            style="width: 100%; height: 100%; object-fit: contain;">
-                    </div>
-                    <h3 class="feature-title">99% Accuracy</h3>
-                    <p class="feature-description">Industry-leading precision in detecting AI-generated and manipulated
-                        media across various generation methods</p>
-                    <div class="feature-tags">
-                        <span class="tag">Verified</span>
-                        <span class="tag">Tested</span>
-                    </div>
-                </div>
-                <div class="feature-card card-glow" data-aos="flip-left" data-aos-delay="200">
-                    <div class="feature-icon icon-analytics">
-                        <img src="analytics_icon.png" alt="Analytics"
-                            style="width: 100%; height: 100%; object-fit: contain;">
-                    </div>
-                    <h3 class="feature-title">Advanced Analytics</h3>
-                    <p class="feature-description">Comprehensive reports with confidence scores, heatmaps, and detailed
-                        forensic analysis</p>
-                    <div class="feature-tags">
-                        <span class="tag">Detailed Reports</span>
-                        <span class="tag">Visualizations</span>
+
+                    <!-- Spinning Orbit Plane -->
+                    <div class="orbit-ring">
+                        <div class="orbit-node node-1" data-id="fusion">
+                            <div class="node-content"><img src="deep_learning_icon.png" alt="Hybrid Fusion"
+                                    class="node-icon"></div>
+                        </div>
+                        <div class="orbit-node node-2" data-id="realtime">
+                            <div class="node-content"><img src="realtime_analysis_icon.png" alt="Real-Time"
+                                    class="node-icon"></div>
+                        </div>
+                        <div class="orbit-node node-3" data-id="accuracy">
+                            <div class="node-content"><img src="accuracy_icon.png" alt="99% Accuracy" class="node-icon">
+                            </div>
+                        </div>
+                        <div class="orbit-node node-4" data-id="analytics">
+                            <div class="node-content"><img src="analytics_icon.png" alt="Advanced Analytics"
+                                    class="node-icon"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -606,6 +588,7 @@
     <script src="hero_reveal.js"></script>
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
     <script src="motion.js"></script>
+    <script src="orbit_interaction.js"></script>
 </body>
 
 </html>

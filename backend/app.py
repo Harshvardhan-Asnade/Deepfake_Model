@@ -439,6 +439,17 @@ def get_history():
     history = database.get_history()
     return jsonify(history)
 
+@app.route('/api/history/<int:scan_id>', methods=['PATCH'])
+def update_history_item(scan_id):
+    """Update a specific scan's metadata (notes, tags)"""
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    if database.update_scan(scan_id, data):
+        return jsonify({'message': 'Scan updated successfully'})
+    return jsonify({'error': 'Failed to update scan'}), 500
+
 @app.route('/api/history/<int:scan_id>', methods=['DELETE'])
 def delete_scan(scan_id):
     """Delete a specific scan"""
