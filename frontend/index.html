@@ -20,6 +20,15 @@
     <link rel="stylesheet" href="extension.css">
     <link rel="stylesheet" href="scroll_indicator.css">
     <link rel="stylesheet" href="orbit.css">
+    <link rel="stylesheet" href="pwa.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="/logo.ico">
 </head>
 
 <body>
@@ -63,15 +72,26 @@
         <div class="container">
             <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <img src="logo.ico" alt="DeepGuard Logo" class="logo-img">
                     <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
-                <ul class="nav-menu">
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="analysis.html">Analysis</a></li>
-                    <li><a href="history.html">History</a></li>
-                </ul>
-                <a href="analysis.html" class="btn-primary">Get Started</a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="analysis.html">Analysis</a></li>
+                        <li><a href="history.html">History</a></li>
+                    </ul>
+                    <a href="analysis.html" class="btn-primary">Get Started</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -589,6 +609,8 @@
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
     <script src="motion.js"></script>
     <script src="orbit_interaction.js"></script>
+    <script src="mobile.js"></script>
+    <script src="pwa.js"></script>
 </body>
 
 </html>

@@ -13,6 +13,15 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="history.css">
     <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="pwa.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="/logo.ico">
 </head>
 
 <body class="analysis-page">
@@ -24,15 +33,26 @@
         <div class="container">
             <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <img src="logo.ico" alt="DeepGuard Logo" class="logo-img">
                     <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
-                <ul class="nav-menu" style="margin-left: auto; padding-right: 40px;">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="analysis.html">Analysis</a></li>
-                    <li><a href="history.html" class="active">History</a></li>
-                </ul>
-                <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="analysis.html">Analysis</a></li>
+                        <li><a href="history.html" class="active">History</a></li>
+                    </ul>
+                    <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -198,7 +218,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
     <script src="motion.js"></script>
+    <script src="config.js"></script>
     <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script src="pwa.js"></script>
     <script>
         // Simple script to handle active state or mock history if we wanted to
         document.addEventListener('DOMContentLoaded', () => {

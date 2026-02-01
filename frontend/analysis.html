@@ -12,6 +12,15 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="pwa.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="/logo.ico">
 </head>
 
 <body class="analysis-page">
@@ -23,15 +32,26 @@
         <div class="container">
             <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <img src="logo.ico" alt="DeepGuard Logo" class="logo-img">
                     <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
-                <ul class="nav-menu" style="margin-left: auto; padding-right: 40px;">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="analysis.html" class="active">Analysis</a></li>
-                    <li><a href="history.html">History</a></li>
-                </ul>
-                <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="analysis.html" class="active">Analysis</a></li>
+                        <li><a href="history.html">History</a></li>
+                    </ul>
+                    <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -56,6 +76,8 @@
                     </div>
                     <h3 class="upload-title">Drop Images Here</h3>
                     <p class="upload-description">Supports JPG, PNG, WEBP, MP4, AVI, MOV · Max 100MB</p>
+                    <p class="upload-description" style="margin-top: 8px; font-size: 13px; opacity: 0.8;">📋 Or press
+                        Ctrl/Cmd+V to paste from clipboard</p>
                     <p class="file-count-badge" id="fileCountBadge" style="display: none;"></p>
                     <input type="file" id="fileInput" accept="image/*,video/*" multiple hidden>
                     <button class="btn-primary" onclick="document.getElementById('fileInput').click()"
@@ -189,6 +211,34 @@
                         </div>
                     </div>
 
+                    <!-- Feedback Section -->
+                    <div class="feedback-section" id="feedbackSection" style="display: none;">
+                        <div class="feedback-header">
+                            <h4>Was this prediction correct?</h4>
+                            <p>Your feedback helps improve the model</p>
+                        </div>
+                        <div class="feedback-buttons">
+                            <button class="btn-feedback btn-feedback-correct" id="btnFeedbackCorrect"
+                                onclick="submitFeedback(true)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Prediction is Correct
+                            </button>
+                            <button class="btn-feedback btn-feedback-wrong" id="btnFeedbackWrong"
+                                onclick="submitFeedback(false)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                Prediction is Wrong
+                            </button>
+                        </div>
+                        <div class="feedback-message" id="feedbackMessage" style="display: none;"></div>
+                    </div>
+
                 </div>
 
                 <div class="metrics-grid">
@@ -274,6 +324,8 @@
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
     <script src="motion.js"></script>
     <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script src="pwa.js"></script>
 
 
 </body>

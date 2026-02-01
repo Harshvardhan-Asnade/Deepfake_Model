@@ -37,6 +37,7 @@ Thumbs.db
 test_images/
 uploads/
 history_uploads/
+feedback_images/
 video_batch_results.csv
 *.bak
 
@@ -60,6 +61,20 @@ CODE_OF_CONDUCT.md
 SECURITY.md
 CHANGELOG.md
 README.md
+LICENSE
+.github/
+.gitattributes
+
+# Large Model Files
+# *.safetensors <-- Commented out to allow Git LFS
+*.pth
+*.pt
+# model/results/
+!model/results/checkpoints/
+model/results/
+model/checkpoints/
+
+# Project Specific
 visualizations/
 generate_visualizations.py
 plots/
