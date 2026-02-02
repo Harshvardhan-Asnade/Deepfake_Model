@@ -1,23 +1,5 @@
 {
     "version": 2,
     "cleanUrls": true,
-    "trailingSlash": false,
-    "routes": [
-        {
-            "src": "/assets/(.*)",
-            "dest": "/assets/$1"
-        },
-        {
-            "src": "/(.*).ico",
-            "dest": "/$1.ico"
-        },
-        {
-            "src": "/(.*).png",
-            "dest": "/$1.png"
-        },
-        {
-            "src": "/(.*).svg",
-            "dest": "/$1.svg"
-        }
-    ]
+    "trailingSlash": false
 }
