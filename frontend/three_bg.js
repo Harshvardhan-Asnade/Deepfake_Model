@@ -5,6 +5,10 @@ function initThreeBackground() {
     const container = document.getElementById('canvas-container');
     if (!container) return;
 
+    // PERFORMANCE OPTIMIZATION: Reduce count on mobile
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 400 : 1200; // significantly fewer particles on mobile
+
     // SCENE
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x000000, 0.002);
@@ -13,9 +17,15 @@ function initThreeBackground() {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.z = 500;
 
-    // RENDERER
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // RENDERER - PERFORMANCE TUNING
+    const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: !isMobile, // Disable antialias on mobile for performance
+        powerPreference: "high-performance" // Hint to browser
+    });
+
+    // Cap pixel ratio to 2 to avoid 9x rendering on 3x screens
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0); // Transparent background
     container.appendChild(renderer.domElement);
@@ -42,14 +52,13 @@ function initThreeBackground() {
     let themeColors = getThemeColors();
 
     const geometry = new THREE.BufferGeometry();
-    const count = 1200;
     const vertices = [];
     const colors = [];
 
     const color1 = new THREE.Color(themeColors.primary);
     const color2 = new THREE.Color(themeColors.secondary);
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < particleCount; i++) {
         // Random position
         const x = (Math.random() - 0.5) * 2000;
         const y = (Math.random() - 0.5) * 2000;
@@ -133,7 +142,7 @@ function initThreeBackground() {
 
                 // Update Particles
                 const newColors = [];
-                for (let i = 0; i < count; i++) {
+                for (let i = 0; i < particleCount; i++) {
                     const mixedColor = newPrim.clone().lerp(newSec, Math.random() * 0.5);
                     newColors.push(mixedColor.r, mixedColor.g, mixedColor.b);
                 }
@@ -160,7 +169,6 @@ function initThreeBackground() {
     observer.observe(document.documentElement, { attributes: true });
 
 
-
     // MOUSE INTERACTION
     let mouseX = 0;
     let mouseY = 0;
@@ -171,24 +179,36 @@ function initThreeBackground() {
     const windowHalfY = window.innerHeight / 2;
 
     document.addEventListener('mousemove', (event) => {
+        // Optimize: use requestAnimationFrame for mouse updates if needed, but direct is usually fine for coordinates
         mouseX = (event.clientX - windowHalfX);
         mouseY = (event.clientY - windowHalfY);
     });
 
-    // RESIZE HANDLER
+    // RESIZE HANDLER (THROTTLED)
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (!resizeTimeout) {
+            resizeTimeout = setTimeout(() => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                // Update constraints for mouse calc
+                // windowHalfX = window.innerWidth / 2; // const variable can't be reassigned, generally okay not to update center exactly on resize for this effect
+
+                resizeTimeout = null;
+            }, 100);
+        }
     });
 
     // SCROLL INTERACTION
     let scrollY = 0;
     let targetScrollY = 0;
 
+    // Use passive listener for better scroll performance
     document.addEventListener('scroll', () => {
         scrollY = window.scrollY;
-    });
+    }, { passive: true });
 
     // ANIMATION LOOP
     function animate() {
@@ -201,8 +221,7 @@ function initThreeBackground() {
         targetX = mouseX * 0.001;
         targetY = mouseY * 0.001;
 
-        // 1. Particle System Rotation (Base + Mouse + Scroll)
-        // Scroll adds a dramatic rotation around X axis (tumbling forward)
+        // 1. Particle System Rotation
         particles.rotation.y += 0.0005;
         particles.rotation.x = targetScrollY * 0.0002;
 
@@ -210,9 +229,7 @@ function initThreeBackground() {
         particles.rotation.y += 0.05 * (targetX - particles.rotation.y);
         particles.rotation.x += 0.05 * (targetY - particles.rotation.x);
 
-        // 2. Camera Scroll Movement (Storytelling Effect)
-        // As user scrolls down, camera flies 'into' the scene (Z-axis) and pans down (Y-axis)
-        // Max Scroll assumptions: approx 3000px height
+        // 2. Camera Scroll Movement
         const zoomFactor = targetScrollY * 0.1;
         camera.position.z = 500 - zoomFactor; // Move closer
         camera.position.y = -targetScrollY * 0.05; // Pan down subtly
@@ -220,23 +237,21 @@ function initThreeBackground() {
         // Stop zooming too close
         if (camera.position.z < 100) camera.position.z = 100;
 
-        // 3. Floating Shapes Animation (Enhanced with Scroll)
-        shapes.forEach((shape, i) => {
-            // Basic rotation
+        // 3. Floating Shapes Animation
+        for (let i = 0; i < shapes.length; i++) {
+            const shape = shapes[i];
             shape.rotation.x += 0.002 * (i + 1);
             shape.rotation.y += 0.002 * (i + 1);
-
-            // Scroll reaction: Shapes spread out or rotate faster
-            // Adding a scroll-based rotation boost
             shape.rotation.z = targetScrollY * 0.001 * (i % 2 === 0 ? 1 : -1);
-        });
+        }
 
         // 4. Grid Animation (Infinite Scroll)
         // Move grid towards camera (z-axis)
+        // Using modulo based on local vars to avoid Date.now() overhead if high precision distinctness isn't needed
+        // But Date.now() is fine.
         gridHelper.position.z = (Date.now() * 0.05) % (gridSize / gridDivisions);
-        // Also react to scroll speed (optional warp effect)
         gridHelper.position.z += targetScrollY * 0.5;
-        // Keep it looping within one cell size to look infinite
+
         const cell = gridSize / gridDivisions;
         if (gridHelper.position.z > cell) gridHelper.position.z -= cell;
 

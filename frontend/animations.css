@@ -60,6 +60,7 @@
 
 .animate-pulse-glow {
     animation: pulseGlow 3s infinite;
+    will-change: box-shadow, border-color;
 }
 
 /* SHIMMER BORDER (for premium feel) */
@@ -88,12 +89,14 @@
 
 .animate-float {
     animation: floatY 6s ease-in-out infinite;
+    will-change: transform;
+    /* Hint for GPU promotion */
 }
 
-/* SCANNER LINE (for analysis) */
+/* SCANNER LINE (High Performance - transform based) */
 @keyframes scanLine {
     0% {
-        top: 0%;
+        transform: translateY(0%);
         opacity: 0;
     }
 
@@ -106,13 +109,17 @@
     }
 
     100% {
-        top: 100%;
+        transform: translateY(100%);
         opacity: 0;
     }
 }
 
 .scanner-line {
     position: absolute;
+    top: 0;
+    /* Positioned at top, animated via transform */
+    left: 0;
+    right: 0;
     width: 100%;
     height: 2px;
     background: var(--accent-yellow);
@@ -120,6 +127,8 @@
     animation: scanLine 2s linear infinite;
     z-index: 10;
     pointer-events: none;
+    will-change: transform, opacity;
+    /* Hint for GPU */
 }
 
 /* ==================== ENHANCED PROCESSING OVERLAY ==================== */
