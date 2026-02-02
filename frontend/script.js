@@ -2572,7 +2572,7 @@ async function loadStatisticsAndRecent() {
             recentGrid.innerHTML = recent.map(item => `
                 <div class="recent-card" onclick="window.location.href='history.html'">
                     ${item.image_path ?
-                    `<img src="/${item.image_path}" alt="${item.filename}" class="recent-card-image" onerror="this.outerHTML='<div class=\'recent-card-image\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 24px;\'>📷</div>'">`
+                    `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="recent-card-image" onerror="this.outerHTML='<div class=\'recent-card-image\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 24px;\'>📷</div>'">`
                     : '<div class="recent-card-image" style="background: #222; display: flex; align-items: center; justify-content: center; font-size: 24px;">📷</div>'}
                     <div class="recent-card-content">
                         <div class="recent-card-header">
@@ -2710,12 +2710,12 @@ function renderHistoryTable() {
                 const isVideo = item.image_path.match(/\.(mp4|mov|avi|webm|mkv)$/i);
                 if (isVideo) {
                     return `<div class="table-preview-img" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; cursor: pointer;" onclick="showPreviewModal(${item.id})">
-                                        <video src="/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                        <video src="${API_BASE_URL}/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
                                         <div style="position: absolute; bottom: 4px; right: 4px; font-size: 10px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 4px; border-radius: 4px;">▶</div>
                                     </div>`;
                 }
 
-                return `<img src="/${item.image_path}" alt="${item.filename}" class="table-preview-img" onclick="showPreviewModal(${item.id})" style="cursor: pointer" onerror="this.outerHTML='<div class=\'table-preview-img\' style=\'background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
+                return `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="table-preview-img" onclick="showPreviewModal(${item.id})" style="cursor: pointer" onerror="this.outerHTML='<div class=\'table-preview-img\' style=\'background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
             })()}
                 </td>
                 <td class="table-filename" title="${item.filename}" onclick="showPreviewModal(${item.id})" style="cursor: pointer">${item.filename}</td>
@@ -2772,12 +2772,12 @@ function renderHistoryGrid() {
                 const isVideo = item.image_path.match(/\.(mp4|mov|avi|webm|mkv)$/i);
                 if (isVideo) {
                     return `<div class="grid-preview" style="position: relative; overflow: hidden; background: #000; cursor: pointer;" onclick="showPreviewModal(${item.id})">
-                                    <video src="/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                    <video src="${API_BASE_URL}/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
                                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; background: rgba(0,0,0,0.5); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.5);">▶</div>
                                 </div>`;
                 }
 
-                return `<img src="/${item.image_path}" alt="${item.filename}" class="grid-preview" onclick="showPreviewModal(${item.id})" onerror="this.outerHTML='<div class=\'grid-preview\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
+                return `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="grid-preview" onclick="showPreviewModal(${item.id})" onerror="this.outerHTML='<div class=\'grid-preview\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
             })()}
                 <div class="grid-content">
                     <div class="grid-header">
@@ -2998,8 +2998,8 @@ function showPreviewModal(id) {
             <div class="modal-media-container">
                 ${item.image_path ?
                 (item.image_path.toLowerCase().endsWith('.mp4') || item.image_path.toLowerCase().endsWith('.mov') ?
-                    `<video src="/${item.image_path}" class="modal-media" controls></video>` :
-                    `<img src="/${item.image_path}" class="modal-media" alt="Preview">`) :
+                    `<video src="${API_BASE_URL}/${item.image_path}" class="modal-media" controls></video>` :
+                    `<img src="${API_BASE_URL}/${item.image_path}" class="modal-media" alt="Preview">`) :
                 '<div class="modal-media" style="background: #222; aspect-ratio: 1; display:flex; align-items:center; justify-content:center; font-size:40px;">📷</div>'}
             </div>
             <div class="modal-details">
