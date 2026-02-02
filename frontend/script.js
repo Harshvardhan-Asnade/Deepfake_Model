@@ -1364,8 +1364,7 @@ async function submitFeedback(isCorrect) {
                 if (isCorrect) {
                     feedbackMessage.innerHTML = `✅ Thank you! Your feedback confirms this prediction was correct.`;
                 } else {
-                    feedbackMessage.innerHTML = `✅ Thank you! This image has been saved for model improvement.<br>
-                        <small>Actual label: <strong>${result.actual_label}</strong></small>`;
+                    feedbackMessage.innerHTML = `✅ Thank you for your feedback!`;
                 }
 
                 feedbackMessage.style.display = 'block';
