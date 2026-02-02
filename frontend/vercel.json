@@ -1,16 +1,23 @@
 {
     "version": 2,
-    "builds": [
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "routes": [
         {
-            "src": "*.html",
-            "use": "@vercel/static"
-        }
-    ],
-    "rewrites": [
+            "src": "/assets/(.*)",
+            "dest": "/assets/$1"
+        },
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "src": "/(.*).ico",
+            "dest": "/$1.ico"
+        },
+        {
+            "src": "/(.*).png",
+            "dest": "/$1.png"
+        },
+        {
+            "src": "/(.*).svg",
+            "dest": "/$1.svg"
         }
-    ],
-    "trailingSlash": false
+    ]
 }
