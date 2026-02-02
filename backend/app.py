@@ -318,9 +318,12 @@ def reencode_video(input_path):
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with detailed model status"""
+    model_status = "ready" if model is not None else "initializing"
+    
     return jsonify({
         'status': 'healthy',
+        'model_status': model_status,
         'model_loaded': model is not None,
         'device': str(device)
     })
@@ -593,7 +596,7 @@ if __name__ == '__main__':
     load_model()
     
     print("=" * 60)
-    port = int(os.environ.get("PORT", 7860))
+    port = int(os.environ.get("PORT", 7777))
     print(f"🌐 Starting server on http://0.0.0.0:{port}")
     print("=" * 60)
     

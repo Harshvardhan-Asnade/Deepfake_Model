@@ -230,7 +230,7 @@
                 <div class="ios-prompt-content">
                     <button class="ios-prompt-close" onclick="this.parentElement.parentElement.remove(); localStorage.setItem('ios-install-prompt-dismissed', 'true');">✕</button>
                     <div class="ios-prompt-icon">
-                        <img src="/logo.png" alt="DeepGuard" style="width: 60px; height: 60px; border-radius: 12px;">
+                        <img src="/logo.ico" alt="DeepGuard" style="width: 60px; height: 60px; border-radius: 12px;">
                     </div>
                     <h3>Install DeepGuard</h3>
                     <p>Install this app on your iPhone:</p>

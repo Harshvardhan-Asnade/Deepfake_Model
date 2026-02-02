@@ -21,7 +21,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DeepGuard">
-    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 
 <body class="analysis-page">
@@ -33,7 +33,7 @@
         <div class="container">
             <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <img src="logo.png" alt="DeepGuard Logo" class="logo-img">
+                    <img src="logo.ico" alt="DeepGuard Logo" class="logo-img">
                     <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
 
@@ -166,22 +166,66 @@
                     <button class="btn-close-preview" onclick="resetAnalysis()" aria-label="Close preview"
                         title="Close Preview">×</button>
                 </div>
-                <!-- Processing Overlay (Scoped) -->
-                <div id="processingOverlay" class="processing-overlay" style="display: none;">
-                    <div class="processing-content">
-                        <div class="processing-spinner">
-                            <div class="spinner-core"></div>
+                <!-- Multi-Stage Processing Overlay -->
+                <div id="processingOverlay" class="processing-overlay-enhanced" style="display: none;">
+                    <div class="processing-content-enhanced">
+                        <!-- Model Status Badge -->
+                        <div class="model-status-badge" id="modelStatusBadge" style="display: none;">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Model Status: <strong
+                                    id="modelStatusText">Checking...</strong></span>
+                        </div>
+
+                        <!-- Spinner -->
+                        <div class="neural-spinner">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
                             <div class="spinner-ring"></div>
                         </div>
-                        <h2 class="processing-title">ANALYZING MEDIA</h2>
-                        <p class="processing-status" id="processingStatusText" aria-live="polite">Running DeepFake
-                            Detection Pipeline...
+
+                        <!-- Main Status Title -->
+                        <h2 class="processing-title-enhanced" id="processingMainTitle">Analyzing Media</h2>
+
+                        <!-- Step Progress Indicators -->
+                        <div class="progress-steps" id="progressSteps">
+                            <div class="progress-step" data-step="upload">
+                                <div class="step-icon">📤</div>
+                                <div class="step-label">Uploading</div>
+                            </div>
+                            <div class="progress-step" data-step="connect">
+                                <div class="step-icon">🔌</div>
+                                <div class="step-label">Connecting</div>
+                            </div>
+                            <div class="progress-step" data-step="warmup">
+                                <div class="step-icon">⏳</div>
+                                <div class="step-label">Warming Up</div>
+                            </div>
+                            <div class="progress-step" data-step="analyze">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-label">Analyzing</div>
+                            </div>
+                            <div class="progress-step" data-step="generate">
+                                <div class="step-icon">✨</div>
+                                <div class="step-label">Finalizing</div>
+                            </div>
+                        </div>
+
+                        <!-- Status Message -->
+                        <p class="processing-message" id="processingMessage">
+                            Please don't refresh • Your media is safe and never stored
                         </p>
 
-                        <div class="processing-progress-container">
-                            <div class="processing-progress-bar" id="processingProgressBar"></div>
+                        <!-- Warm-Up Alert (Hidden by default) -->
+                        <div class="warmup-alert" id="warmupAlert" style="display: none;">
+                            <div class="warmup-icon">⏳</div>
+                            <div class="warmup-content">
+                                <h4>The AI model is waking up</h4>
+                                <p>This may take 10–30 seconds on first use.</p>
+                                <p class="warmup-reason">On cloud deployments (like Hugging Face), models go to sleep
+                                    when idle to save resources.</p>
+                                <p class="warmup-reassurance">✓ This only happens on the first request</p>
+                            </div>
                         </div>
-                        <p class="processing-time">Estimated time: <span id="processingTimeLeft">--</span></p>
                     </div>
                 </div>
             </div>

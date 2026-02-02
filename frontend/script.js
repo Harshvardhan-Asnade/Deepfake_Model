@@ -1033,7 +1033,27 @@ async function handleAnalysisUpload(file) {
 
     loader.style.display = 'block';
 
+    // Show enhanced processing overlay with health check
+    showProcessingOverlay(isVideo);
+
+    // Step 1: Check model health
+    const healthStatus = await checkModelHealth();
+    const modelStatusText = document.getElementById('modelStatusText');
+
+    if (healthStatus.model_status === 'ready') {
+        if (modelStatusText) modelStatusText.textContent = 'Online';
+        setProcessingStep('connect');
+    } else if (healthStatus.model_status === 'initializing') {
+        if (modelStatusText) modelStatusText.textContent = 'Initializing';
+        setProcessingStep('warmup');
+    } else {
+        if (modelStatusText) modelStatusText.textContent = 'Unavailable';
+    }
+
     try {
+        // Step 2: Upload (already at this step)
+        setProcessingStep('upload');
+
         // Call Backend
         const formData = new FormData();
         formData.append('file', file);
@@ -1042,10 +1062,16 @@ async function handleAnalysisUpload(file) {
 
         const endpoint = isVideo ? '/api/predict_video' : '/api/predict';
 
+        // Step 3: Connecting to AI model
+        setProcessingStep('connect');
+
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             body: formData
         });
+
+        // Step 4: Analyzing
+        setProcessingStep('analyze');
 
         if (!response.ok) throw new Error('Analysis failed');
 
@@ -1124,14 +1150,23 @@ async function handleAnalysisUpload(file) {
         loader.style.display = 'none';
         analysisResults.style.display = 'block';
 
+        // Hide processing overlay
+        hideProcessingOverlay();
+
     } catch (error) {
         console.error(error);
+        hideProcessingOverlay();
+
         loader.innerHTML = `
-            <div class="empty-icon">❌</div>
-            <h3>Analysis Failed</h3>
-            <p>Could not connect to detection server.</p>
-            <button class="btn-primary" onclick="resetAnalysis()" style="margin-top: 20px">Try Again</button>
+            <div class="empty-icon">⚠️</div>
+            <h3>Model Unavailable</h3>
+            <p>The AI model is currently unavailable. Please retry in a few moments.</p>
+            <button class="btn-primary" onclick="handleAnalysisUpload(window.lastUploadedFile)" style="margin-top: 20px">Retry Analysis</button>
+            <button class="btn-secondary" onclick="resetAnalysis()" style="margin-top: 10px">Cancel</button>
         `;
+
+        // Store file reference for retry
+        window.lastUploadedFile = file;
     }
 }
 
@@ -1526,7 +1561,7 @@ async function generatePDFReport(historyItem = null) {
 
     // -- Logo & Header --
     try {
-        const logoImg = await loadImage('logo.png');
+        const logoImg = await loadImage('logo.ico');
         const canvas = document.createElement('canvas');
         canvas.width = 100;
         canvas.height = 100;
@@ -2127,60 +2162,137 @@ function updateQueueCount() {
 
 
 // ==================== PROCESSING OVERLAY HELPERS ====================
+// ==================== ENHANCED MULTI-STAGE PROCESSING OVERLAY ====================
 let processingTimerInterval;
+let warmupTimerTimeout;
+let currentProcessingStep = null;
 
+/**
+ * Check model health before starting analysis
+ */
+async function checkModelHealth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/health`, {
+            method: 'GET',
+            timeout: 5000
+        });
+
+        if (!response.ok) {
+            return { status: 'error', model_status: 'unavailable' };
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Health check failed:', error);
+        return { status: 'error', model_status: 'unavailable' };
+    }
+}
+
+/**
+ * Update the active processing step
+ */
+function setProcessingStep(step) {
+    currentProcessingStep = step;
+    const steps = document.querySelectorAll('.progress-step');
+
+    steps.forEach(stepEl => {
+        const stepName = stepEl.getAttribute('data-step');
+        stepEl.classList.remove('active', 'completed');
+
+        // Mark as completed if before current step
+        const stepOrder = ['upload', 'connect', 'warmup', 'analyze', 'generate'];
+        const currentIndex = stepOrder.indexOf(step);
+        const thisIndex = stepOrder.indexOf(stepName);
+
+        if (thisIndex < currentIndex) {
+            stepEl.classList.add('completed');
+        } else if (thisIndex === currentIndex) {
+            stepEl.classList.add('active');
+        }
+    });
+}
+
+/**
+ * Show the enhanced multi-stage processing overlay
+ */
 function showProcessingOverlay(isVideo = false) {
     const overlay = document.getElementById('processingOverlay');
-    const progressBar = document.getElementById('processingProgressBar');
-    const timeLeft = document.getElementById('processingTimeLeft');
-    const statusText = document.getElementById('processingStatusText');
+    const modelStatusBadge = document.getElementById('modelStatusBadge');
+    const modelStatusText = document.getElementById('modelStatusText');
+    const processingMainTitle = document.getElementById('processingMainTitle');
+    const processingMessage = document.getElementById('processingMessage');
+    const warmupAlert = document.getElementById('warmupAlert');
 
     if (!overlay) return;
 
-    overlay.style.display = 'flex';
-
     // Reset state
-    if (progressBar) progressBar.style.width = '0%';
+    overlay.style.display = 'flex';
+    if (warmupAlert) warmupAlert.style.display = 'none';
 
-    // Simulated duration: 5s for image, 15s for video
-    const duration = isVideo ? 15000 : 5000;
-    let elapsed = 0;
-    const updateInterval = 100;
+    // Set initial step
+    setProcessingStep('upload');
 
-    if (timeLeft) timeLeft.textContent = `${Math.ceil(duration / 1000)}s`;
+    // Update title
+    if (processingMainTitle) {
+        processingMainTitle.textContent = isVideo ? 'Analyzing Video' : 'Analyzing Media';
+    }
 
-    clearInterval(processingTimerInterval);
-    processingTimerInterval = setInterval(() => {
-        elapsed += updateInterval;
-        const percent = Math.min((elapsed / duration) * 100, 95); // Cap at 95% until real completion
-        const remaining = Math.max(Math.ceil((duration - elapsed) / 1000), 1);
-
-        if (progressBar) progressBar.style.width = `${percent}%`;
-        if (timeLeft) timeLeft.textContent = `${remaining}s`;
-
-        // Dynamic status text
-        if (statusText) {
-            if (percent < 30) statusText.textContent = "Preprocessing Media...";
-            else if (percent < 60) statusText.textContent = "Running DeepFake Detection Models...";
-            else if (percent < 80) statusText.textContent = "Analyzing Artifacts & Anomalies...";
-            else statusText.textContent = "Finalizing Forensic Report...";
+    // Show model status badge
+    if (modelStatusBadge) {
+        modelStatusBadge.style.display = 'inline-flex';
+        if (modelStatusText) {
+            modelStatusText.textContent = 'Checking...';
         }
+    }
 
-    }, updateInterval);
+    // Set warm-up detection timer (7 seconds)
+    clearTimeout(warmupTimerTimeout);
+    warmupTimerTimeout = setTimeout(() => {
+        if (warmupAlert && overlay.style.display === 'flex') {
+            warmupAlert.style.display = 'flex';
+            if (processingMessage) {
+                processingMessage.textContent = 'Model is initializing • This is normal for cloud deployments';
+            }
+        }
+    }, 7000); // Show warm-up alert after 7 seconds
 }
 
+/**
+ * Hide the processing overlay with smooth transition
+ */
 function hideProcessingOverlay() {
     const overlay = document.getElementById('processingOverlay');
-    if (overlay) {
-        // Flash to 100% before hiding
-        const progressBar = document.getElementById('processingProgressBar');
-        if (progressBar) progressBar.style.width = '100%';
+    const processingMainTitle = document.getElementById('processingMainTitle');
+    const processingMessage = document.getElementById('processingMessage');
 
-        setTimeout(() => {
-            overlay.style.display = 'none';
-            clearInterval(processingTimerInterval);
-        }, 500);
+    if (!overlay) return;
+
+    // Clear timers
+    clearTimeout(warmupTimerTimeout);
+    clearInterval(processingTimerInterval);
+
+    // Show completion
+    setProcessingStep('generate');
+    if (processingMainTitle) {
+        processingMainTitle.textContent = 'Analysis Complete';
     }
+    if (processingMessage) {
+        processingMessage.textContent = 'Reviewing AI signals...';
+    }
+
+    // Mark all steps as completed
+    setTimeout(() => {
+        document.querySelectorAll('.progress-step').forEach(step => {
+            step.classList.remove('active');
+            step.classList.add('completed');
+        });
+    }, 200);
+
+    // Hide overlay after brief display
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 800);
 }
 
 async function processUploadQueue() {
