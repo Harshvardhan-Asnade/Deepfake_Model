@@ -436,7 +436,7 @@ def predict_video():
         # Add to database
         # Note: The database 'add_scan' might expect image-specific fields.
         # We'll re-use 'fake_prob' as 'avg_fake_prob'
-        database.add_scan(
+        scan_id = database.add_scan(
             filename=filename,
             prediction=result['prediction'],
             confidence=result['confidence'],
@@ -453,6 +453,7 @@ def predict_video():
             
         # Add video URL for frontend playback
         result['video_url'] = relative_path
+        result['scan_id'] = scan_id
         
         return jsonify(result)
 

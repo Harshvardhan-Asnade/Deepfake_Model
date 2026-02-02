@@ -98,20 +98,20 @@
                 </div>
 
                 <div class="filter-controls">
-                    <select id="filterPrediction" class="filter-select">
+                    <select id="filterPrediction" class="filter-select" onchange="applyFilters()">
                         <option value="all">All Results</option>
                         <option value="FAKE">Fake Only</option>
                         <option value="REAL">Real Only</option>
                     </select>
 
-                    <select id="filterConfidence" class="filter-select">
+                    <select id="filterConfidence" class="filter-select" onchange="applyFilters()">
                         <option value="all">All Confidence</option>
                         <option value="high">High (>80%)</option>
                         <option value="medium">Medium (50-80%)</option>
                         <option value="low">Low (<50%)< /option>
                     </select>
 
-                    <select id="sortBy" class="filter-select">
+                    <select id="sortBy" class="filter-select" onchange="applyFilters()">
                         <option value="date-desc">Latest First</option>
                         <option value="date-asc">Oldest First</option>
                         <option value="confidence-desc">Confidence ↓</option>
