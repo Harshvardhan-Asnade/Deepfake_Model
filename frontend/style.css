@@ -6610,6 +6610,7 @@ body.menu-open {
     background: rgba(239, 68, 68, 0.1);
     color: #dc2626;
 }
+
 /* ==================== DASHBOARD ENHANCEMENTS ==================== */
 
 .analysis-grid {
@@ -6717,9 +6718,23 @@ body.menu-open {
 }
 
 /* SKELETON PULSE */
-.skeleton-title { height: 40px; width: 60%; margin-bottom: 20px; }
-.skeleton-text { height: 14px; width: 100%; margin-bottom: 10px; }
-.skeleton-metric { height: 80px; width: 100%; border-radius: 16px; }
+.skeleton-title {
+    height: 40px;
+    width: 60%;
+    margin-bottom: 20px;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.skeleton-metric {
+    height: 80px;
+    width: 100%;
+    border-radius: 16px;
+}
 
 /* LIGHT MODE DASHBOARD ADAPTATION */
 :root[data-theme="light"] .upload-area {
@@ -6737,10 +6752,10 @@ body.menu-open {
 }
 
 :root[data-theme="light"] .skeleton {
-    background: linear-gradient(90deg, 
-        rgba(0, 68, 204, 0.05) 25%, 
-        rgba(0, 68, 204, 0.1) 50%, 
-        rgba(0, 68, 204, 0.05) 75%);
+    background: linear-gradient(90deg,
+            rgba(0, 68, 204, 0.05) 25%,
+            rgba(0, 68, 204, 0.1) 50%,
+            rgba(0, 68, 204, 0.05) 75%);
 }
 
 /* ==================== MOBILE RESPONSIVE TWEAKS ==================== */
@@ -6751,7 +6766,8 @@ body.menu-open {
     }
 
     .console-logs {
-        height: 120px; /* Smaller height on mobile */
+        height: 120px;
+        /* Smaller height on mobile */
         font-size: 10px;
     }
 
@@ -6766,12 +6782,12 @@ body.menu-open {
     .metric-card {
         padding: 15px !important;
     }
-    
+
     .analysis-grid {
         grid-template-columns: 1fr !important;
         gap: 20px !important;
     }
-    
+
     .upload-area {
         min-height: 250px !important;
     }

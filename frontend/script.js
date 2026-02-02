@@ -1681,7 +1681,7 @@ async function generatePDFReport(historyItem = null) {
     const tableData = [
         ['Analysis ID', `SCAN-${Date.now().toString().slice(-6)}`],
         ['Date & Time', timestamp],
-        ['Model Engine', 'DeepGuard Hybrid v2.0 (CNN+ViT)'],
+        ['Model Engine', 'DeepGuard Mark V (CNN+ViT)'],
         ['Scan Duration', scanTime],
         ['Status', 'Completed Successfully']
     ];
