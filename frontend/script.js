@@ -1526,7 +1526,7 @@ async function generatePDFReport(historyItem = null) {
 
     // -- Logo & Header --
     try {
-        const logoImg = await loadImage('logo.ico');
+        const logoImg = await loadImage('logo.png');
         const canvas = document.createElement('canvas');
         canvas.width = 100;
         canvas.height = 100;
