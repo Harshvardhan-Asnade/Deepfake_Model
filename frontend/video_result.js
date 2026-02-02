@@ -678,7 +678,7 @@ async function generatePDFReport() {
     reportContainer.innerHTML = `
         <div class="report-header">
             <div class="report-logo">
-                <img src="logo.png" alt="DeepGuard Logo">
+                <img src="logo.ico" alt="DeepGuard Logo">
                 <span>DeepGuard Analysis Report</span>
             </div>
             <div class="report-meta">

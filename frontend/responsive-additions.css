@@ -3,11 +3,15 @@
 /* Preserves exact visual design on desktop while ensuring perfect mobile adaptation */
 
 /* ==================== GLOBAL OVERFLOW PREVENTION ==================== */
+/* ==================== GLOBAL OVERFLOW PREVENTION ==================== */
 html,
 body {
     overflow-x: hidden !important;
-    max-width: 100vw;
+    max-width: 100%;
+    /* Changed from 100vw to avoid scrollbar width issues */
     width: 100%;
+    overscroll-behavior-y: none;
+    /* Prevent bounce on mobile if handled by Lenis */
 }
 
 /* Ensure all major containers respect viewport */
@@ -39,14 +43,16 @@ iframe {
     }
 
     #loader-quote {
-        font-size: 1.2rem !important;
+        font-size: clamp(1rem, 4vh, 1.2rem) !important;
+        /* Fluid scaling */
         margin-bottom: 1rem;
         max-width: 95%;
         line-height: 1.2;
     }
 
     .counter-wrapper {
-        font-size: 8vw !important;
+        font-size: clamp(3rem, 8vh, 5rem) !important;
+        /* Stable scaling */
         bottom: 15px;
         right: 15px;
     }
@@ -70,20 +76,23 @@ iframe {
     }
 
     .counter-wrapper {
-        font-size: 12vw !important;
+        font-size: clamp(4rem, 12vw, 6rem) !important;
         bottom: 10px;
         right: 10px;
     }
 
     .percent-symbol {
-        font-size: 5vw;
+        font-size: 0.5em;
+        /* Generic relative size */
     }
 }
 
 /* ==================== ANALYSIS PAGE: PROCESSING OVERLAY ==================== */
 .processing-overlay {
-    max-width: 100vw;
-    max-height: 100vh;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100dvh;
+    /* Dynamic viewport height */
     overflow: hidden;
 }
 
@@ -93,7 +102,7 @@ iframe {
     }
 
     .processing-title {
-        font-size: 18px !important;
+        font-size: clamp(16px, 4vw, 18px) !important;
     }
 
     .processing-status {
@@ -124,7 +133,8 @@ iframe {
 /* ==================== PREVIEW AREA: IMAGE/VIDEO CONSTRAINTS ==================== */
 .preview-area {
     max-width: 100%;
-    max-height: calc(100vh - 250px);
+    /* Use dvh for mobile browser bars */
+    max-height: calc(100dvh - 250px);
     overflow: hidden;
 }
 
@@ -132,7 +142,7 @@ iframe {
 .preview-area video,
 .preview-area canvas {
     max-width: 100% !important;
-    max-height: calc(100vh - 300px) !important;
+    max-height: calc(100dvh - 300px) !important;
     object-fit: contain;
     width: auto;
     height: auto;

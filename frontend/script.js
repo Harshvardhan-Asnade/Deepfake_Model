@@ -1033,7 +1033,27 @@ async function handleAnalysisUpload(file) {
 
     loader.style.display = 'block';
 
+    // Show enhanced processing overlay with health check
+    showProcessingOverlay(isVideo);
+
+    // Step 1: Check model health
+    const healthStatus = await checkModelHealth();
+    const modelStatusText = document.getElementById('modelStatusText');
+
+    if (healthStatus.model_status === 'ready') {
+        if (modelStatusText) modelStatusText.textContent = 'Online';
+        setProcessingStep('connect');
+    } else if (healthStatus.model_status === 'initializing') {
+        if (modelStatusText) modelStatusText.textContent = 'Initializing';
+        setProcessingStep('warmup');
+    } else {
+        if (modelStatusText) modelStatusText.textContent = 'Unavailable';
+    }
+
     try {
+        // Step 2: Upload (already at this step)
+        setProcessingStep('upload');
+
         // Call Backend
         const formData = new FormData();
         formData.append('file', file);
@@ -1042,10 +1062,16 @@ async function handleAnalysisUpload(file) {
 
         const endpoint = isVideo ? '/api/predict_video' : '/api/predict';
 
+        // Step 3: Connecting to AI model
+        setProcessingStep('connect');
+
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             body: formData
         });
+
+        // Step 4: Analyzing
+        setProcessingStep('analyze');
 
         if (!response.ok) throw new Error('Analysis failed');
 
@@ -1124,14 +1150,23 @@ async function handleAnalysisUpload(file) {
         loader.style.display = 'none';
         analysisResults.style.display = 'block';
 
+        // Hide processing overlay
+        hideProcessingOverlay();
+
     } catch (error) {
         console.error(error);
+        hideProcessingOverlay();
+
         loader.innerHTML = `
-            <div class="empty-icon">❌</div>
-            <h3>Analysis Failed</h3>
-            <p>Could not connect to detection server.</p>
-            <button class="btn-primary" onclick="resetAnalysis()" style="margin-top: 20px">Try Again</button>
+            <div class="empty-icon">⚠️</div>
+            <h3>Model Unavailable</h3>
+            <p>The AI model is currently unavailable. Please retry in a few moments.</p>
+            <button class="btn-primary" onclick="handleAnalysisUpload(window.lastUploadedFile)" style="margin-top: 20px">Retry Analysis</button>
+            <button class="btn-secondary" onclick="resetAnalysis()" style="margin-top: 10px">Cancel</button>
         `;
+
+        // Store file reference for retry
+        window.lastUploadedFile = file;
     }
 }
 
@@ -1526,7 +1561,7 @@ async function generatePDFReport(historyItem = null) {
 
     // -- Logo & Header --
     try {
-        const logoImg = await loadImage('logo.png');
+        const logoImg = await loadImage('logo.ico');
         const canvas = document.createElement('canvas');
         canvas.width = 100;
         canvas.height = 100;
@@ -1646,7 +1681,7 @@ async function generatePDFReport(historyItem = null) {
     const tableData = [
         ['Analysis ID', `SCAN-${Date.now().toString().slice(-6)}`],
         ['Date & Time', timestamp],
-        ['Model Engine', 'DeepGuard Hybrid v2.0 (CNN+ViT)'],
+        ['Model Engine', 'DeepGuard Mark V (CNN+ViT)'],
         ['Scan Duration', scanTime],
         ['Status', 'Completed Successfully']
     ];
@@ -2127,60 +2162,159 @@ function updateQueueCount() {
 
 
 // ==================== PROCESSING OVERLAY HELPERS ====================
+// ==================== ENHANCED MULTI-STAGE PROCESSING OVERLAY ====================
 let processingTimerInterval;
+let warmupTimerTimeout;
+let currentProcessingStep = null;
 
+/**
+ * Check model health before starting analysis
+ */
+async function checkModelHealth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/health`, {
+            method: 'GET',
+            timeout: 5000
+        });
+
+        if (!response.ok) {
+            return { status: 'error', model_status: 'unavailable' };
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Health check failed:', error);
+        return { status: 'error', model_status: 'unavailable' };
+    }
+}
+
+/**
+ * Update the active processing step
+ */
+function setProcessingStep(step) {
+    currentProcessingStep = step;
+    const steps = document.querySelectorAll('.progress-step');
+
+    steps.forEach(stepEl => {
+        const stepName = stepEl.getAttribute('data-step');
+        stepEl.classList.remove('active', 'completed');
+
+        // Mark as completed if before current step
+        const stepOrder = ['upload', 'connect', 'warmup', 'analyze', 'generate'];
+        const currentIndex = stepOrder.indexOf(step);
+        const thisIndex = stepOrder.indexOf(stepName);
+
+        if (thisIndex < currentIndex) {
+            stepEl.classList.add('completed');
+        } else if (thisIndex === currentIndex) {
+            stepEl.classList.add('active');
+        }
+    });
+}
+
+/**
+ * Show the enhanced multi-stage processing overlay
+ */
 function showProcessingOverlay(isVideo = false) {
     const overlay = document.getElementById('processingOverlay');
-    const progressBar = document.getElementById('processingProgressBar');
-    const timeLeft = document.getElementById('processingTimeLeft');
-    const statusText = document.getElementById('processingStatusText');
+    const modelStatusBadge = document.getElementById('modelStatusBadge');
+    const modelStatusText = document.getElementById('modelStatusText');
+    const processingMainTitle = document.getElementById('processingMainTitle');
+    const processingMessage = document.getElementById('processingMessage');
+    const warmupAlert = document.getElementById('warmupAlert');
 
     if (!overlay) return;
 
-    overlay.style.display = 'flex';
-
     // Reset state
-    if (progressBar) progressBar.style.width = '0%';
+    overlay.style.display = 'flex';
+    if (warmupAlert) warmupAlert.style.display = 'none';
 
-    // Simulated duration: 5s for image, 15s for video
-    const duration = isVideo ? 15000 : 5000;
-    let elapsed = 0;
-    const updateInterval = 100;
+    // Set initial step
+    setProcessingStep('upload');
 
-    if (timeLeft) timeLeft.textContent = `${Math.ceil(duration / 1000)}s`;
+    // Update title
+    if (processingMainTitle) {
+        processingMainTitle.textContent = isVideo ? 'Analyzing Video' : 'Analyzing Media';
+    }
 
-    clearInterval(processingTimerInterval);
-    processingTimerInterval = setInterval(() => {
-        elapsed += updateInterval;
-        const percent = Math.min((elapsed / duration) * 100, 95); // Cap at 95% until real completion
-        const remaining = Math.max(Math.ceil((duration - elapsed) / 1000), 1);
-
-        if (progressBar) progressBar.style.width = `${percent}%`;
-        if (timeLeft) timeLeft.textContent = `${remaining}s`;
-
-        // Dynamic status text
-        if (statusText) {
-            if (percent < 30) statusText.textContent = "Preprocessing Media...";
-            else if (percent < 60) statusText.textContent = "Running DeepFake Detection Models...";
-            else if (percent < 80) statusText.textContent = "Analyzing Artifacts & Anomalies...";
-            else statusText.textContent = "Finalizing Forensic Report...";
+    // Show model status badge
+    if (modelStatusBadge) {
+        modelStatusBadge.style.display = 'inline-flex';
+        if (modelStatusText) {
+            modelStatusText.textContent = 'Checking...';
         }
+    }
 
-    }, updateInterval);
+    // Set warm-up detection timer (7 seconds)
+    clearTimeout(warmupTimerTimeout);
+    warmupTimerTimeout = setTimeout(() => {
+        if (warmupAlert && overlay.style.display === 'flex') {
+            warmupAlert.style.display = 'flex';
+            if (processingMessage) {
+                processingMessage.textContent = 'Model is initializing...';
+            }
+
+            // Start Progress Bar Animation
+            let progress = 0;
+            const bar = document.getElementById('warmupProgressFill');
+            const label = document.getElementById('warmupPercent');
+
+            if (bar && label) {
+                bar.style.width = '0%';
+                label.textContent = '0%';
+
+                if (window.warmupProgressInterval) clearInterval(window.warmupProgressInterval);
+
+                window.warmupProgressInterval = setInterval(() => {
+                    progress += Math.random() * 1.5; // Slow random increment
+                    if (progress > 95) progress = 95; // Cap at 95% until actual completion
+
+                    bar.style.width = `${progress}%`;
+                    label.textContent = `${Math.round(progress)}%`;
+                }, 400);
+            }
+        }
+    }, 5000); // Show warm-up alert after 5 seconds (reduced from 7s for better feedback)
 }
 
+/**
+ * Hide the processing overlay with smooth transition
+ */
 function hideProcessingOverlay() {
     const overlay = document.getElementById('processingOverlay');
-    if (overlay) {
-        // Flash to 100% before hiding
-        const progressBar = document.getElementById('processingProgressBar');
-        if (progressBar) progressBar.style.width = '100%';
+    const processingMainTitle = document.getElementById('processingMainTitle');
+    const processingMessage = document.getElementById('processingMessage');
 
-        setTimeout(() => {
-            overlay.style.display = 'none';
-            clearInterval(processingTimerInterval);
-        }, 500);
+    if (!overlay) return;
+
+    // Clear timers
+    // Clear timers
+    clearTimeout(warmupTimerTimeout);
+    if (window.warmupProgressInterval) clearInterval(window.warmupProgressInterval);
+    clearInterval(processingTimerInterval);
+
+    // Show completion
+    setProcessingStep('generate');
+    if (processingMainTitle) {
+        processingMainTitle.textContent = 'Analysis Complete';
     }
+    if (processingMessage) {
+        processingMessage.textContent = 'Reviewing AI signals...';
+    }
+
+    // Mark all steps as completed
+    setTimeout(() => {
+        document.querySelectorAll('.progress-step').forEach(step => {
+            step.classList.remove('active');
+            step.classList.add('completed');
+        });
+    }, 200);
+
+    // Hide overlay after brief display
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 800);
 }
 
 async function processUploadQueue() {
@@ -2459,7 +2593,9 @@ async function loadStatisticsAndRecent() {
         } else {
             recentGrid.innerHTML = recent.map(item => `
                 <div class="recent-card" onclick="window.location.href='history.html'">
-                    ${item.image_path ? `<img src="/${item.image_path}" alt="${item.filename}" class="recent-card-image" onerror="this.style.display='none'">` : ''}
+                    ${item.image_path ?
+                    `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="recent-card-image" onerror="this.outerHTML='<div class=\'recent-card-image\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 24px;\'>📷</div>'">`
+                    : '<div class="recent-card-image" style="background: #222; display: flex; align-items: center; justify-content: center; font-size: 24px;">📷</div>'}
                     <div class="recent-card-content">
                         <div class="recent-card-header">
                             <div class="recent-badge ${item.prediction === 'FAKE' ? 'fake' : 'real'}">
@@ -2590,10 +2726,19 @@ function renderHistoryTable() {
             <tr data-id="${item.id}">
                 <td><input type="checkbox" class="item-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleItemSelection(${item.id}, this)"></td>
                 <td>
-                    ${item.image_path ?
-                `<img src="/${item.image_path}" alt="${item.filename}" class="table-preview-img" onclick="showPreviewModal(${item.id})" style="cursor: pointer">` :
-                '<div class="table-preview-img" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">📷</div>'
-            }
+                    ${(() => {
+                if (!item.image_path) return '<div class="table-preview-img" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;" onclick="showPreviewModal(' + item.id + ')">📷</div>';
+
+                const isVideo = item.image_path.match(/\.(mp4|mov|avi|webm|mkv)$/i);
+                if (isVideo) {
+                    return `<div class="table-preview-img" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; cursor: pointer;" onclick="showPreviewModal(${item.id})">
+                                        <video src="${API_BASE_URL}/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                        <div style="position: absolute; bottom: 4px; right: 4px; font-size: 10px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 4px; border-radius: 4px;">▶</div>
+                                    </div>`;
+                }
+
+                return `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="table-preview-img" onclick="showPreviewModal(${item.id})" style="cursor: pointer" onerror="this.outerHTML='<div class=\'table-preview-img\' style=\'background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
+            })()}
                 </td>
                 <td class="table-filename" title="${item.filename}" onclick="showPreviewModal(${item.id})" style="cursor: pointer">${item.filename}</td>
                 <td><span class="table-badge ${isFake ? 'fake' : 'real'}">${isFake ? '⚠ FAKE' : '✓ REAL'}</span></td>
@@ -2643,10 +2788,19 @@ function renderHistoryGrid() {
                 <div style="position: absolute; top: 10px; left: 10px; z-index: 5;">
                     <input type="checkbox" onchange="toggleItemSelection(${item.id}, this)" ${isSelected ? 'checked' : ''}>
                 </div>
-                ${item.image_path ?
-                `<img src="/${item.image_path}" alt="${item.filename}" class="grid-preview" onclick="showPreviewModal(${item.id})">` :
-                '<div class="grid-preview" style="background: #222; display: flex; align-items: center; justify-content: center;">📷</div>'
-            }
+                ${(() => {
+                if (!item.image_path) return '<div class="grid-preview" style="background: #222; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;" onclick="showPreviewModal(' + item.id + ')">📷</div>';
+
+                const isVideo = item.image_path.match(/\.(mp4|mov|avi|webm|mkv)$/i);
+                if (isVideo) {
+                    return `<div class="grid-preview" style="position: relative; overflow: hidden; background: #000; cursor: pointer;" onclick="showPreviewModal(${item.id})">
+                                    <video src="${API_BASE_URL}/${item.image_path}" muted loop onmouseover="this.play()" onmouseout="this.pause()" style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; background: rgba(0,0,0,0.5); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.5);">▶</div>
+                                </div>`;
+                }
+
+                return `<img src="${API_BASE_URL}/${item.image_path}" alt="${item.filename}" class="grid-preview" onclick="showPreviewModal(${item.id})" onerror="this.outerHTML='<div class=\'grid-preview\' style=\'background: #222; display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer;\' onclick=\'showPreviewModal(${item.id})\'>📷</div>'">`;
+            })()}
                 <div class="grid-content">
                     <div class="grid-header">
                         <span class="table-badge ${isFake ? 'fake' : 'real'}">${isFake ? 'FAKE' : 'REAL'}</span>
@@ -2866,8 +3020,8 @@ function showPreviewModal(id) {
             <div class="modal-media-container">
                 ${item.image_path ?
                 (item.image_path.toLowerCase().endsWith('.mp4') || item.image_path.toLowerCase().endsWith('.mov') ?
-                    `<video src="/${item.image_path}" class="modal-media" controls></video>` :
-                    `<img src="/${item.image_path}" class="modal-media" alt="Preview">`) :
+                    `<video src="${API_BASE_URL}/${item.image_path}" class="modal-media" controls></video>` :
+                    `<img src="${API_BASE_URL}/${item.image_path}" class="modal-media" alt="Preview">`) :
                 '<div class="modal-media" style="background: #222; aspect-ratio: 1; display:flex; align-items:center; justify-content:center; font-size:40px;">📷</div>'}
             </div>
             <div class="modal-details">

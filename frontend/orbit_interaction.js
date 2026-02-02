@@ -10,7 +10,7 @@ const featureData = {
         tags: ["CUDA", "Batch Process", "Low Latency"]
     },
     accuracy: {
-        title: "99% Detection Accuracy",
+        title: "97% Detection Accuracy",
         desc: "Industry-leading precision in detecting AI-generated and manipulated media across various generation methods.",
         tags: ["Verified", "Tested", "SOTA"]
     },
