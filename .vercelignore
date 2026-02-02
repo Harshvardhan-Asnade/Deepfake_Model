@@ -1,0 +1,15 @@
+# Exclude heavy backend/model files from Vercel deployment
+backend/
+model/
+extension/
+scripts/
+Documentation/
+*.safetensors
+*.pth
+*.onnx
+.git/
+.github/
+README.md
+DEPLOYMENT.md
+HF_DEPLOYMENT_STEPS.md
+Dockerfile
