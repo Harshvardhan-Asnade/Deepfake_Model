@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Analysis Dashboard - DeepGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="pwa.css">
+    <link rel="stylesheet" href="responsive-additions.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="logo.ico">
+</head>
+
+<body class="analysis-page">
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
+                </a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="analysis.html" class="active">Analysis</a></li>
+                        <li><a href="history.html">History</a></li>
+                    </ul>
+                    <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="analysis-container">
+        <div class="analysis-grid">
+            <!-- Left Side: Upload & Preview -->
+            <div class="upload-section">
+                <div class="section-header-small">
+                    <h2>Media Input</h2>
+                    <p>Upload image for AI analysis</p>
+                </div>
+
+                <div class="upload-area animate-pulse-glow" id="uploadArea">
+                    <div class="upload-icon animate-float">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3 class="upload-title">Drop Images Here</h3>
+                    <p class="upload-description">Supports JPG, PNG, WEBP, MP4, AVI, MOV · Max 100MB</p>
+                    <p class="upload-description" style="margin-top: 8px; font-size: 13px; opacity: 0.8;">📋 Or press
+                        Ctrl/Cmd+V to paste from clipboard</p>
+                    <p class="file-count-badge" id="fileCountBadge" style="display: none;"></p>
+                    <input type="file" id="fileInput" accept="image/*,video/*" multiple hidden>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()"
+                        aria-label="Select files to upload">Select
+                        Files</button>
+                    <!-- Scanner Line Effect -->
+                    <div class="scanner-line"></div>
+                </div>
+
+                <!-- File Queue Preview -->
+                <div class="file-queue-container" id="fileQueueContainer" style="display: none;">
+                    <div class="queue-header">
+                        <div class="queue-title-section">
+                            <h3 class="queue-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"
+                                    aria-hidden="true">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                                Upload Queue
+                            </h3>
+                            <span class="queue-count-badge" id="queueCount"
+                                aria-label="Number of files in queue">0</span>
+                        </div>
+                        <div class="queue-actions">
+                            <button class="btn-secondary-small" onclick="document.getElementById('fileInput').click()"
+                                title="Add more files" aria-label="Add more files to queue">
+                                + Add More
+                            </button>
+                            <button class="btn-secondary-small" onclick="clearQueue()" title="Clear all files"
+                                aria-label="Clear all files from queue">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"
+                                    aria-hidden="true">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-queue" id="fileQueue"></div>
+                    <div class="queue-footer">
+                        <button class="btn-secondary-outline" onclick="clearQueue()" style="flex: 1;"
+                            aria-label="Back to upload area">
+                            ← Back to Upload
+                        </button>
+                        <button class="btn-primary" onclick="processUploadQueue()" style="flex: 2;" id="startUploadBtn"
+                            aria-label="Start analysis processing">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"
+                                aria-hidden="true">
+                                <path
+                                    d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                                </path>
+                                <path
+                                    d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                                </path>
+                                <path d="M9 12H4s.55-3.03 2-5c1.62-2.2 5-3 5-3"></path>
+                                <path d="M12 15v5s3.03-.55 5-2c2.2-1.62 3-5 3-5"></path>
+                            </svg>
+                            Start Analysis
+                        </button>
+                    </div>
+                </div>
+
+                <div class="preview-area" id="previewArea" style="display: none;">
+                    <img id="previewImage" src="" alt="Preview">
+                    <img id="heatmapOverlay" src="" alt="Heatmap"
+                        style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.5s ease;">
+
+                    <div class="heatmap-toggle-container" id="heatmapToggle" style="display: none;">
+                        <span class="toggle-label">Heatmap</span>
+                        <label class="switch">
+                            <input type="checkbox" id="heatmapSwitch">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button class="btn-close-preview" onclick="resetAnalysis()" aria-label="Close preview"
+                        title="Close Preview">×</button>
+                </div>
+                <!-- Multi-Stage Processing Overlay -->
+                <div id="processingOverlay" class="processing-overlay-enhanced" style="display: none;">
+                    <div class="processing-content-enhanced">
+                        <!-- Model Status Badge -->
+                        <div class="model-status-badge" id="modelStatusBadge" style="display: none;">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Model Status: <strong
+                                    id="modelStatusText">Checking...</strong></span>
+                        </div>
+
+                        <!-- Spinner -->
+                        <div class="neural-spinner">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-ring"></div>
+                        </div>
+
+                        <!-- Main Status Title -->
+                        <h2 class="processing-title-enhanced" id="processingMainTitle">Analyzing Media</h2>
+
+                        <!-- Step Progress Indicators -->
+                        <div class="progress-steps" id="progressSteps">
+                            <div class="progress-step" data-step="upload">
+                                <div class="step-icon">📤</div>
+                                <div class="step-label">Uploading</div>
+                            </div>
+                            <div class="progress-step" data-step="connect">
+                                <div class="step-icon">🔌</div>
+                                <div class="step-label">Connecting</div>
+                            </div>
+                            <div class="progress-step" data-step="warmup">
+                                <div class="step-icon">⏳</div>
+                                <div class="step-label">Warming Up</div>
+                            </div>
+                            <div class="progress-step" data-step="analyze">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-label">Analyzing</div>
+                            </div>
+                            <div class="progress-step" data-step="generate">
+                                <div class="step-icon">✨</div>
+                                <div class="step-label">Finalizing</div>
+                            </div>
+                        </div>
+
+                        <!-- Status Message -->
+                        <p class="processing-message" id="processingMessage">
+                            Please don't refresh • Your media is safe and never stored
+                        </p>
+
+                        <!-- Warm-Up Alert (Hidden by default) -->
+                        <div class="warmup-alert" id="warmupAlert" style="display: none;">
+                            <div class="warmup-icon">⏳</div>
+                            <div class="warmup-content">
+                                <div class="warmup-progress-wrapper" style="width: 100%;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #fff;">
+                                        <span>Model Waking Up</span>
+                                        <span id="warmupPercent">0%</span>
+                                    </div>
+                                    <div
+                                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative;">
+                                        <div id="warmupProgressFill"
+                                            style="width: 0%; height: 100%; background: #E3F514; border-radius: 10px; transition: width 0.3s linear; box-shadow: 0 0 10px rgba(227, 245, 20, 0.5);">
+                                        </div>
+                                    </div>
+                                    <p class="warmup-reassurance"
+                                        style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.6);">✓
+                                        Starting cloud instance (first run only)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Results & Metrics -->
+            <div class="results-section" id="resultsSection">
+                <div class="empty-state">
+                    <div class="empty-icon" aria-hidden="true">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Ready to Analyze</h3>
+                    <p>Upload media to start the DeepGuard detection pipeline</p>
+                </div>
+
+                <div class="analysis-results" style="display: none;">
+                    <div class="verdict-card" id="verdictCard">
+                        <span class="verdict-label">DETECTION RESULT</span>
+                        <h1 class="verdict-title" id="verdictTitle">--</h1>
+                        <div id="detectionBadges" class="detection-badges"></div>
+                        <div class="confidence-meter">
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="confidenceBar"></div>
+                            </div>
+                            <span class="meter-value" id="confidenceValue">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Section -->
+                    <div class="feedback-section" id="feedbackSection" style="display: none;">
+                        <div class="feedback-header">
+                            <h4>Was this prediction correct?</h4>
+                            <p>Your feedback helps improve the model</p>
+                        </div>
+                        <div class="feedback-buttons">
+                            <button class="btn-feedback btn-feedback-correct" id="btnFeedbackCorrect"
+                                onclick="submitFeedback(true)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Prediction is Correct
+                            </button>
+                            <button class="btn-feedback btn-feedback-wrong" id="btnFeedbackWrong"
+                                onclick="submitFeedback(false)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                Prediction is Wrong
+                            </button>
+                        </div>
+                        <div class="feedback-message" id="feedbackMessage" style="display: none;"></div>
+                    </div>
+
+                </div>
+
+                <div class="metrics-grid">
+                    <!-- Chart Container -->
+                    <div class="metric-card"
+                        style="grid-column: span 2; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                        <canvas id="probabilityChart" style="max-height: 150px;"></canvas>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="metric-label">Scan Time</span>
+                        <span class="metric-value" id="scanTimeDisplay">--</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Model Version</span>
+                        <span class="metric-value">Mark V</span>
+                    </div>
+                </div>
+
+                <div class="analysis-details">
+                    <h4>Forensic Analysis</h4>
+                    <p id="analysisText">Waiting for analysis...</p>
+
+                    <button class="btn-primary" id="downloadReportBtn"
+                        style="margin-top: 20px; width: 100%; display: none;" onclick="generatePDFReport()">
+                        📄 Download Forensic Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="container" style="max-width: 1200px; margin-top: 60px;" id="statisticsSection">
+            <div class="section-header">
+                <h2 class="section-title">Analysis <span class="gradient-text">Statistics</span></h2>
+                <p class="section-subtitle">Overview of your detection history</p>
+            </div>
+            <div class="statistics-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="totalScans">0</div>
+                    <div class="stat-label">Total Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="fakeCount">0</div>
+                    <div class="stat-label">Fake Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value" id="realCount">0</div>
+                    <div class="stat-label">Real Images</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="avgConfidence">0%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Analyses -->
+        <div class="container" style="max-width: 1200px; margin-top: 40px; padding-bottom: 60px;" id="recentSection">
+            <div class="section-header">
+                <h2 class="section-title">Recent <span class="gradient-text">Analyses</span></h2>
+                <a href="history.html" class="btn-secondary" style="font-size: 14px;">View All History →</a>
+            </div>
+            <div class="recent-grid" id="recentGrid">
+                <!-- Recent items will be populated here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    <script src="motion.js"></script>
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script src="pwa.js"></script>
+
+
+</body>
+
+</html>

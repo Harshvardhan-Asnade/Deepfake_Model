@@ -1,0 +1,440 @@
+/* ==================== PREMIUM ANIMATIONS ==================== */
+
+/* SMOOTH FADE IN UP */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 40px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.animate-fade-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+    /* Init hidden */
+}
+
+/* STAGGER DELAYS (utility classes) */
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}
+
+.delay-400 {
+    animation-delay: 0.4s;
+}
+
+.delay-500 {
+    animation-delay: 0.5s;
+}
+
+/* PULSING GLOW (for upload area) */
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(227, 245, 20, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    50% {
+        box-shadow: 0 0 30px 0 rgba(227, 245, 20, 0.2);
+        border-color: rgba(227, 245, 20, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(227, 245, 20, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulseGlow 3s infinite;
+    will-change: box-shadow, border-color;
+}
+
+/* SHIMMER BORDER (for premium feel) */
+@keyframes borderShimmer {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+/* FLOATING ELEMENT */
+@keyframes floatY {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-float {
+    animation: floatY 6s ease-in-out infinite;
+    will-change: transform;
+    /* Hint for GPU promotion */
+}
+
+/* SCANNER LINE (High Performance - transform based) */
+@keyframes scanLine {
+    0% {
+        transform: translateY(0%);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+.scanner-line {
+    position: absolute;
+    top: 0;
+    /* Positioned at top, animated via transform */
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-yellow);
+    box-shadow: 0 0 10px var(--accent-yellow);
+    animation: scanLine 2s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+    will-change: transform, opacity;
+    /* Hint for GPU */
+}
+
+/* ==================== ENHANCED PROCESSING OVERLAY ==================== */
+
+/* Neural Spinner Animation */
+@keyframes neuralPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes spinRing {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.neural-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 30px;
+}
+
+.neural-spinner .spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top-color: var(--accent-yellow);
+    border-radius: 50%;
+    animation: spinRing 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.neural-spinner .spinner-ring:nth-child(2) {
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+    border-top-color: rgba(227, 245, 20, 0.6);
+    animation-duration: 2s;
+    animation-direction: reverse;
+}
+
+.neural-spinner .spinner-ring:nth-child(3) {
+    width: 50%;
+    height: 50%;
+    top: 25%;
+    left: 25%;
+    border-top-color: rgba(227, 245, 20, 0.3);
+    animation-duration: 2.5s;
+}
+
+/* Progress Steps Animation */
+@keyframes stepPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+@keyframes stepGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(227, 245, 20, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(227, 245, 20, 0.6);
+    }
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.4;
+    transition: all 0.4s ease;
+}
+
+.progress-step .step-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 0.4s ease;
+}
+
+.progress-step .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.progress-step.active {
+    opacity: 1;
+}
+
+.progress-step.active .step-icon {
+    background: rgba(227, 245, 20, 0.1);
+    border-color: var(--accent-yellow);
+    animation: stepPulse 2s ease-in-out infinite, stepGlow 2s ease-in-out infinite;
+}
+
+.progress-step.active .step-label {
+    color: var(--accent-yellow);
+}
+
+.progress-step.completed {
+    opacity: 0.7;
+}
+
+.progress-step.completed .step-icon {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10B981;
+}
+
+.progress-step.completed .step-label {
+    color: #10B981;
+}
+
+/* Processing Overlay Enhanced */
+.processing-overlay-enhanced {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.processing-content-enhanced {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.model-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.model-status-badge .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-yellow);
+    border-radius: 50%;
+    animation: neuralPulse 2s ease-in-out infinite;
+}
+
+.model-status-badge .status-text {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.processing-title-enhanced {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+}
+
+.processing-message {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 20px;
+}
+
+/* Warm-Up Alert */
+.warmup-alert {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(227, 245, 20, 0.05);
+    border: 1px solid rgba(227, 245, 20, 0.2);
+    border-radius: 12px;
+    text-align: left;
+    display: flex;
+    gap: 15px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.warmup-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.warmup-content h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent-yellow);
+}
+
+.warmup-content p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.warmup-content .warmup-reason {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.warmup-content .warmup-reassurance {
+    font-size: 13px;
+    color: #10B981;
+    font-weight: 500;
+}
+
+/* ==================== ACCESSIBILITY: REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .animate-fade-up,
+    .animate-float,
+    .animate-pulse-glow {
+        animation: none !important;
+    }
+}
+
+/* Reduced animations on mobile for performance */
+@media (max-width: 768px) {
+    .animate-float {
+        animation-duration: 8s;
+    }
+
+    .animate-pulse-glow {
+        animation-duration: 4s;
+    }
+
+    .progress-steps {
+        gap: 12px;
+    }
+
+    .progress-step .step-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .progress-step .step-label {
+        font-size: 10px;
+    }
+
+    .warmup-alert {
+        flex-direction: column;
+        text-align: center;
+    }
+}

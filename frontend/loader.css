@@ -1,0 +1,166 @@
+/* ==================== BRUTALIST LOADER ==================== */
+#loader-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000;
+    z-index: 2147483647;
+    /* Max Z-Index */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: #ffffff;
+    font-family: sans-serif;
+    /* Fallback first */
+    transition: transform 0.5s ease-in-out;
+}
+
+#loader-wrapper.loaded {
+    transform: translateY(-100%);
+}
+
+/* Brutalist Content */
+.loader-content {
+    text-align: center;
+    position: relative;
+    z-index: 2147483647;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.counter-wrapper {
+    font-size: 10vw;
+    font-weight: 900;
+    font-family: sans-serif;
+    line-height: 1;
+    color: #E3F514 !important;
+    /* Force Yellow */
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    margin: 0;
+    display: block;
+    opacity: 1 !important;
+    text-align: right;
+}
+
+#loader-quote {
+    color: #ffffff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    max-width: 90%;
+    margin-bottom: 2rem;
+    opacity: 1;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    z-index: 2147483648;
+
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+/* Character States for Monkeytype effect (DeepGuard Themed) */
+.char-waiting {
+    color: rgba(255, 255, 255, 0.2);
+    transition: color 0.1s ease;
+}
+
+.char-typed {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.char-current {
+    background-color: #E3F514;
+    color: #000000;
+    border-radius: 0px;
+    /* Brutalist sharp edges */
+}
+
+.quote-highlight {
+    /* Reset glass effect to allow inner spans to control color */
+    background: none;
+    -webkit-text-fill-color: initial;
+    text-fill-color: initial;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    filter: none;
+    display: inline;
+}
+
+/* Remove underline for pure glass text look */
+.quote-highlight::after {
+    display: none;
+}
+
+#loader-percent {
+    color: #E3F514 !important;
+}
+
+.percent-symbol {
+    font-size: 4vw;
+    vertical-align: super;
+    margin-left: 10px;
+    opacity: 1 !important;
+    color: #E3F514 !important;
+}
+
+/* Status Text */
+.detection-status {
+    font-family: monospace, sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: bold;
+    min-height: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #ffffff !important;
+    margin-bottom: 20px;
+}
+
+.status-text {
+    color: #ffffff !important;
+}
+
+/* Meta Information */
+.loader-meta {
+    position: absolute;
+    bottom: 40px;
+    width: 100%;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    z-index: 2147483647;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .counter-wrapper {
+        font-size: 15vw;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    #loader-quote {
+        font-size: 1.4rem;
+        width: 90%;
+        padding: 1.5rem;
+        letter-spacing: 0.05em;
+    }
+}

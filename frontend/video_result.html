@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Video Analysis Results - DeepGuard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive-additions.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        /* ==================== VIDEO RESULT SPECIFIC STYLES ==================== */
+
+
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Typography Enhancement */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* Results Header Enhancement */
+        /*
+        .results-header h1 {
+             Conflicting rule removed
+        }
+        */
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background: rgba(227, 245, 20, 0.1);
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            transform: translateX(-4px);
+        }
+
+        /* ==================== ENHANCED VIDEO PLAYER ==================== */
+
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            border-radius: 20px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(227, 245, 20, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .video-wrapper {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: #000;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* Premium Video Controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top,
+                    rgba(0, 0, 0, 0.95) 0%,
+                    rgba(0, 0, 0, 0.8) 50%,
+                    transparent 100%);
+            backdrop-filter: blur(20px);
+            padding: 24px 20px 18px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+
+        .video-player-container:hover .video-controls,
+        .video-controls.active {
+            transform: translateY(0);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: visible;
+            transition: height 0.2s ease;
+        }
+
+        .progress-bar-container:hover {
+            height: 9px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-yellow) 0%, #d1e300 100%);
+            border-radius: 4px;
+            width: 0%;
+            position: relative;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 15px rgba(227, 245, 20, 0.4);
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--accent-yellow);
+            border: 3px solid #000;
+            border-radius: 50%;
+            box-shadow:
+                0 0 15px rgba(227, 245, 20, 0.6),
+                0 2px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .progress-bar-container:hover .progress-bar::after {
+            opacity: 1;
+        }
+
+        /* Suspicious frame markers */
+        .frame-marker {
+            position: absolute;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #ff3333 0%, #ff6666 100%);
+            opacity: 0.8;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 2px;
+        }
+
+        .frame-marker:hover {
+            opacity: 1;
+            width: 5px;
+            box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(227, 245, 20, 0.15);
+            border-color: var(--accent-yellow);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(227, 245, 20, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-pause-btn {
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(227, 245, 20, 0.2) 0%, rgba(227, 245, 20, 0.1) 100%);
+        }
+
+        .play-pause-btn:hover {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #d1e300 100%);
+            color: #000;
+        }
+
+        .time-display {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            min-width: 110px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-slider {
+            width: 90px;
+            height: 5px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .volume-slider:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(227, 245, 20, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .speed-control {
+            position: relative;
+        }
+
+        .speed-menu {
+            position: absolute;
+            bottom: 110%;
+            right: 0;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(227, 245, 20, 0.2);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 110px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .speed-menu.active {
+            display: flex;
+        }
+
+        .speed-option {
+            padding: 10px 14px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            border-radius: 6px;
+            text-align: left;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .speed-option:hover {
+            background: rgba(227, 245, 20, 0.1);
+            color: var(--accent-yellow);
+        }
+
+        .speed-option.active {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #d1e300 100%);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        /* ==================== ENHANCED VERDICT CARD ==================== */
+
+        .verdict-card {
+            background: linear-gradient(135deg,
+                    rgba(227, 245, 20, 0.08) 0%,
+                    rgba(227, 245, 20, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(227, 245, 20, 0.25);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: verdictAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .verdict-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(227, 245, 20, 0.05) 0%, transparent 70%);
+            animation: rotateGlow 10s linear infinite;
+        }
+
+        @keyframes rotateGlow {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes verdictAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .verdict-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #b8cc00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 15px 40px rgba(227, 245, 20, 0.5);
+            animation: iconPulse 2.5s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes iconPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 15px 40px rgba(227, 245, 20, 0.5);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 20px 50px rgba(227, 245, 20, 0.7);
+                transform: scale(1.05);
+            }
+        }
+
+        .verdict-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .verdict-info h2 {
+            font-size: 2.25rem;
+            margin-bottom: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .confidence-meter {
+            margin-top: 1.25rem;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-yellow) 0%, #d1e300 100%);
+            border-radius: 8px;
+            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 25px rgba(227, 245, 20, 0.6);
+            animation: fillAnimation 2s ease-out;
+            position: relative;
+        }
+
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+            border-radius: 8px 8px 0 0;
+        }
+
+        @keyframes fillAnimation {
+            from {
+                width: 0% !important;
+            }
+        }
+
+        .meter-fill.fill-fake {
+            background: linear-gradient(90deg, #ff3333 0%, #ff6666 100%);
+            box-shadow: 0 0 25px rgba(255, 51, 51, 0.6);
+        }
+
+        .meter-fill.fill-real {
+            background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+        }
+
+        #confidenceValue {
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        /* ==================== PREMIUM STATS GRID ==================== */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-yellow) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(227, 245, 20, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(227, 245, 20, 0.1);
+            background: linear-gradient(135deg,
+                    rgba(227, 245, 20, 0.08) 0%,
+                    rgba(255, 255, 255, 0.03) 100%);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg,
+                    rgba(227, 245, 20, 0.15) 0%,
+                    rgba(227, 245, 20, 0.05) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 1.25rem;
+            color: var(--accent-yellow);
+            border: 1px solid rgba(227, 245, 20, 0.2);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 25px rgba(227, 245, 20, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ==================== ENHANCED TIMELINE ==================== */
+
+        .timeline-container {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                    transparent 0%,
+                    var(--accent-yellow) 50%,
+                    transparent 100%);
+        }
+
+        .timeline-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #ffffff;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .timeline-header h3 i {
+            color: var(--accent-yellow);
+            font-size: 1.5rem;
+        }
+
+        .chart-wrapper {
+            height: 380px;
+            width: 100%;
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        /* ==================== ENHANCED FRAME ANALYSIS ==================== */
+
+        .frame-analysis-section {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .frame-analysis-section h3 {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .frame-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 20px;
+            margin-top: 2rem;
+        }
+
+        .frame-item {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .frame-item:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5),
+                0 0 0 3px var(--accent-yellow);
+            border-color: var(--accent-yellow);
+        }
+
+        .frame-item.suspicious {
+            border-color: rgba(255, 51, 51, 0.3);
+        }
+
+        .frame-item.suspicious:hover {
+            box-shadow: 0 15px 40px rgba(255, 51, 51, 0.3),
+                0 0 0 3px #ff3333;
+        }
+
+        .frame-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #141414 0%, #1f1f1f 100%);
+        }
+
+        .frame-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .frame-badge.suspicious {
+            background: rgba(255, 51, 51, 0.95);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 51, 51, 0.4);
+        }
+
+        .frame-badge.clean {
+            background: rgba(16, 185, 129, 0.95);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .frame-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(to top,
+                    rgba(0, 0, 0, 0.95) 0%,
+                    rgba(0, 0, 0, 0.7) 70%,
+                    transparent 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .frame-time {
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .frame-confidence {
+            font-weight: 700;
+            color: var(--accent-yellow);
+        }
+
+        /* ==================== NEW DASHBOARD LAYOUT ==================== */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 24px;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .dashboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Full width timeline section */
+        .dashboard-timeline {
+            grid-column: 1 / -1;
+        }
+
+        /* Full width frames section */
+        .dashboard-frames {
+            grid-column: 1 / -1;
+        }
+
+        /* Stats Grid - Compact 4x1 or 2x2 depending on space */
+        .compact-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card-compact {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card-compact:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(227, 245, 20, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .stat-card-compact .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-compact .stat-value {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ==================== PRINTABLE REPORT STYLES ==================== */
+        .report-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 210mm;
+            /* A4 width */
+            min-height: 297mm;
+            /* A4 height */
+            background: #000;
+            color: #fff;
+            padding: 40px;
+            z-index: -1000;
+            opacity: 0;
+            pointer-events: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .report-logo img {
+            height: 40px;
+        }
+
+        .report-logo span {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .report-meta {
+            text-align: right;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .report-verdict {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .report-verdict-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #000;
+        }
+
+        .report-verdict-content h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .report-card h3 {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .report-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .report-stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        .report-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .report-chart-container {
+            height: 250px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .report-frames {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .report-frame-item {
+            aspect-ratio: 16/9;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .report-frame-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .report-frame-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+        }
+
+        .report-footer {
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        .detail-card {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .detail-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ==================== PREMIUM DOWNLOAD BUTTON ==================== */
+
+        .btn-download {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #d1e300 100%);
+            color: #000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.05rem;
+            box-shadow: 0 10px 30px rgba(227, 245, 20, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-download::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-download:hover::before {
+            left: 100%;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(227, 245, 20, 0.6);
+        }
+
+        .btn-download:active {
+            transform: translateY(-1px);
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+
+        @media (max-width: 768px) {
+            .verdict-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 2rem;
+            }
+
+            .verdict-info h2 {
+                font-size: 1.75rem;
+            }
+
+            .frame-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 14px;
+            }
+
+            .controls-row {
+                gap: 8px;
+            }
+
+            .volume-control {
+                display: none;
+            }
+
+            .time-display {
+                font-size: 12px;
+                min-width: 90px;
+                padding: 6px 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ==================== LOADING ANIMATION ==================== */
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10000;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(227, 245, 20, 0.15);
+            border-top-color: var(--accent-yellow);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            box-shadow: 0 0 40px rgba(227, 245, 20, 0.3);
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Fix for H1 visibility in light mode - removed text-fill-transparent */
+        .results-header h1 {
+            /* background: linear-gradient(135deg, #ffffff 0%, var(--accent-yellow) 100%); */
+            /* -webkit-background-clip: text; */
+            /* -webkit-text-fill-color: transparent; */
+            /* background-clip: text; */
+            text-shadow: 0 0 60px rgba(227, 245, 20, 0.2);
+        }
+
+        .nav-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 100px;
+            /* Pill shape */
+            transition: all 0.2s ease;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-yellow);
+            transform: translateY(-1px);
+        }
+
+        /* Light mode specific overrides for nav buttons */
+        [data-theme="light"] .nav-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+        }
+
+        [data-theme="light"] .nav-btn:hover {
+            background: var(--accent-yellow);
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+    </div>
+
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content" style="display: flex; align-items: center; justify-content: space-between;">
+                <a href="index.html" class="logo">
+                    <img src="logo.ico" alt="DeepGuard" class="logo-img" style="height: 40px;">
+                    <span class="logo-text"
+                        style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Deep<span
+                            style="color: var(--accent-yellow);">Guard</span></span>
+                </a>
+                <div class="nav-links" style="display: flex; gap: 15px;">
+                    <a href="index.html" class="nav-btn">Home</a>
+                    <a href="history.html" class="nav-btn">History</a>
+                    <a href="index.html#features" class="nav-btn">Features</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="padding-top: 140px; padding-bottom: 80px; max-width: 1600px;">
+
+        <!-- Header Section -->
+        <div class="results-header">
+            <div>
+                <div style="margin-bottom: 1rem;">
+                    <span class="status-badge">Analysis Complete</span>
+                </div>
+                <h1
+                    style="font-size: 3.5rem; margin-bottom: 0.75rem; line-height: 1.05; letter-spacing: -0.02em; color: var(--text-primary);">
+                    Video
+                    Analysis Report</h1>
+                <p style="color: var(--text-secondary); font-size: 1.2rem; max-width: 600px; line-height: 1.6;">
+                    Comprehensive AI-powered deepfake detection analysis with frame-by-frame insights
+                </p>
+            </div>
+
+        </div>
+
+        <!-- NEW DASHBOARD GRID LAYOUT -->
+        <div class="dashboard-grid">
+
+            <!-- LEFT MAIN COLUMN: Video Player & Timeline -->
+            <div class="dashboard-main">
+                <!-- Video Player -->
+                <div class="video-player-container" style="margin: 0; max-width: 100%;">
+                    <div class="video-wrapper">
+                        <video id="videoPlayer">
+                            Your browser does not support the video tag.
+                        </video>
+
+                        <div class="video-controls">
+                            <div class="progress-bar-container" id="progressContainer">
+                                <div class="progress-bar" id="progressBar"></div>
+                                <!-- Frame markers will be added dynamically -->
+                            </div>
+                            <div class="controls-row">
+                                <button class="control-btn play-pause-btn" id="playPauseBtn">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="control-btn" id="prevFrameBtn" title="Previous Frame">
+                                    <i class="fas fa-step-backward"></i>
+                                </button>
+                                <button class="control-btn" id="nextFrameBtn" title="Next Frame">
+                                    <i class="fas fa-step-forward"></i>
+                                </button>
+                                <div class="time-display">
+                                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                                </div>
+                                <div class="spacer"></div>
+                                <div class="volume-control">
+                                    <button class="control-btn" id="muteBtn">
+                                        <i class="fas fa-volume-up"></i>
+                                    </button>
+                                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100"
+                                        value="100">
+                                </div>
+                                <div class="speed-control">
+                                    <button class="control-btn" id="speedBtn">
+                                        <i class="fas fa-tachometer-alt"></i>
+                                    </button>
+                                    <div class="speed-menu" id="speedMenu">
+                                        <button class="speed-option" data-speed="0.25">0.25x</button>
+                                        <button class="speed-option" data-speed="0.5">0.5x</button>
+                                        <button class="speed-option active" data-speed="1">1x</button>
+                                        <button class="speed-option" data-speed="1.5">1.5x</button>
+                                        <button class="speed-option" data-speed="2">2x</button>
+                                    </div>
+                                </div>
+                                <button class="control-btn" id="fullscreenBtn">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Analysis (Moved below video in main column) -->
+                <div class="timeline-container" style="margin-bottom: 0;">
+                    <div class="timeline-header">
+                        <h3>
+                            <i class="fas fa-wave-square"></i>
+                            Frame-by-Frame Analysis
+                        </h3>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Timeline showing the probability of manipulation detected in sampled frames. Click
+                        on the chart
+                        to seek to that moment.
+                    </p>
+                    <div class="chart-wrapper">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+            </div> <!-- End Dashboard Main -->
+
+            <!-- RIGHT SIDEBAR: Verdict, Stats, Details -->
+            <div class="dashboard-sidebar">
+
+                <!-- Action Button moved here -->
+                <a href="index.html" class="btn-secondary-outline"
+                    style="width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; padding: 12px;">
+                    <i class="fas fa-file-upload"></i> Analyze Another File
+                </a>
+
+                <!-- Verdict Section -->
+                <div class="verdict-card" id="verdictCard"
+                    style="margin: 0; flex-direction: column; text-align: center; gap: 1.5rem; padding: 2rem;">
+                    <div class="verdict-icon" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto;">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="verdict-info" style="width: 100%;">
+                        <h2 id="verdictTitle" style="font-size: 1.8rem;">ANALYZING...</h2>
+                        <div class="confidence-meter">
+                            <div class="meter-bar">
+                                <div class="meter-fill" id="confidenceBar" style="width: 0%"></div>
+                            </div>
+                            <span id="confidenceValue">0% Confidence</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compact Stats Grid -->
+                <div class="compact-stats-grid" id="statsGrid">
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value" id="videoDuration">--</div>
+                        <div class="stat-label">Duration</div>
+                    </div>
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-film"></i></div>
+                        <div class="stat-value" id="framesProcessed">--</div>
+                        <div class="stat-label">Frames</div>
+                    </div>
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-value" id="suspiciousCount">--</div>
+                        <div class="stat-label">Suspicious</div>
+                    </div>
+                    <div class="stat-card-compact">
+                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="stat-value" id="avgProb">--</div>
+                        <div class="stat-label">Fake Prob</div>
+                    </div>
+                </div>
+
+                <!-- Analysis Details -->
+                <div class="detail-card" style="margin: 0; flex: 1;">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-file-alt" style="color: var(--accent-yellow);"></i>
+                        Detection Notes
+                    </h3>
+                    <p id="analysisNotes"
+                        style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                        Loading analysis details...
+                    </p>
+                    <button id="downloadReportBtn" class="btn-download" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-file-pdf"></i> Download Report
+                    </button>
+                </div>
+
+            </div> <!-- End Dashboard Sidebar -->
+
+            <!-- FULL WIDTH BOTTOM: Frames -->
+            <div class="dashboard-frames">
+                <!-- Frame Analysis Section -->
+                <div class="frame-analysis-section" style="margin: 0;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h3 style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
+                                <i class="fas fa-images" style="color: var(--accent-yellow);"></i>
+                                Sampled Frames
+                            </h3>
+                            <p style="color: var(--text-secondary);">
+                                Click on any frame to jump to that moment in the video
+                            </p>
+                        </div>
+                        <div class="frame-legend"
+                            style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-secondary);">
+                            <span style="display: flex; align-items: center; gap: 6px;"><span
+                                    style="width: 10px; height: 10px; border-radius: 50%; background: #10B981;"></span>
+                                Safe</span>
+                            <span style="display: flex; align-items: center; gap: 6px;"><span
+                                    style="width: 10px; height: 10px; border-radius: 50%; background: #ff3333;"></span>
+                                Suspicious</span>
+                        </div>
+                    </div>
+
+                    <div class="frame-grid" id="frameGrid"
+                        style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+                        <!-- Frames will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Dashboard Grid -->
+
+        <!-- REMOVED OLD SECTIONS since they are now integrated -->
+
+        </div>
+
+
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize Particles
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 800 } },
+                    color: { value: '#E3F514' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#E3F514',
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false,
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    },
+                    modes: {
+                        repulse: { distance: 100, duration: 0.4 },
+                        push: { particles_nb: 4 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+
+        // Apply theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Listen for theme changes if you want real-time syncing across tabs/windows (optional)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                document.documentElement.setAttribute('data-theme', e.newValue);
+            }
+        });
+    </script>
+    <!-- Hidden Report Container for PDF Generation -->
+    <div id="reportContainer" class="report-container">
+        <!-- Content injected dynamically -->
+    </div>
+
+    <script src="config.js"></script>
+    <script src="video_result.js"></script>
+</body>
+
+</html>

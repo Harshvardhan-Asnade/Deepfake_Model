@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Scan History - DeepGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="history.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="pwa.css">
+    <link rel="stylesheet" href="responsive-additions.css">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="logo.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body class="analysis-page">
+    <div class="mesh-background"></div>
+    <div id="particles-js"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
+                </a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="analysis.html">Analysis</a></li>
+                        <li><a href="history.html" class="active">History</a></li>
+                    </ul>
+                    <a href="index.html" class="btn-secondary-nav">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="analysis-container">
+        <div class="container" style="max-width: 1200px; padding-top: 40px;">
+            <div class="section-header">
+                <h2 class="section-title">Scan <span class="gradient-text">History</span></h2>
+                <p class="section-subtitle">View and manage your past detection results</p>
+            </div>
+
+            <!-- Controls Bar -->
+            <div class="history-controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search by filename..."
+                        oninput="handleSearch()">
+                </div>
+
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <button class="btn-toggle active" id="listViewBtn" onclick="toggleView('list')" title="List View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle" id="gridViewBtn" onclick="toggleView('grid')" title="Grid View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="filter-controls">
+                    <select id="filterPrediction" class="filter-select" onchange="applyFilters()">
+                        <option value="all">All Results</option>
+                        <option value="FAKE">Fake Only</option>
+                        <option value="REAL">Real Only</option>
+                    </select>
+
+                    <select id="filterConfidence" class="filter-select" onchange="applyFilters()">
+                        <option value="all">All Confidence</option>
+                        <option value="high">High (>80%)</option>
+                        <option value="medium">Medium (50-80%)</option>
+                        <option value="low">Low (<50%)< /option>
+                    </select>
+
+                    <select id="sortBy" class="filter-select" onchange="applyFilters()">
+                        <option value="date-desc">Latest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="confidence-desc">Confidence ↓</option>
+                        <option value="confidence-asc">Confidence ↑</option>
+                        <option value="filename-asc">Filename A-Z</option>
+                    </select>
+                </div>
+
+                <div class="export-controls">
+                    <button class="btn-export" onclick="exportHistory('csv')">
+                        📄 Export CSV
+                    </button>
+                    <button class="btn-export" onclick="exportHistory('json')">
+                        📋 Export JSON
+                    </button>
+                    <button class="btn-clear-all" onclick="confirmClearAll()">
+                        🗑 Clear All
+                    </button>
+                </div>
+
+                <!-- Quick Filter Chips -->
+                <div class="filter-chips">
+                    <div class="chip active" onclick="setQuickFilter('all', this)">All SCANS</div>
+                    <div class="chip" onclick="setQuickFilter('FAKE', this)">FAKES Detected</div>
+                    <div class="chip" onclick="setQuickFilter('REAL', this)">REAL Media</div>
+                    <div class="chip" onclick="setQuickFilter('high', this)">High Confidence</div>
+                </div>
+            </div>
+
+            <!-- Results Count -->
+            <div class="results-count" id="resultsCount">
+                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> results
+            </div>
+
+            <!-- History Table -->
+            <div class="history-table-container" id="historyTableContainer">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; cursor: default;"><input type="checkbox" id="selectAllCheckbox"
+                                    onclick="toggleSelectAll(this)"></th>
+                            <th>Preview</th>
+                            <th onclick="sortTable('filename')">Filename <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('prediction')">Result <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('confidence')">Confidence <span class="sort-indicator"></span></th>
+                            <th onclick="sortTable('timestamp')">Date <span class="sort-indicator"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Rows will be populated here -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="historyEmptyState" style="display: none;">
+                    <div class="empty-icon">📂</div>
+                    <h3>No History Found</h3>
+                    <p>Your recent analysis results will appear here.</p>
+                    <a href="analysis.html" class="btn-mini-corner">
+                        <i class="fas fa-plus"></i> New Analysis
+                    </a>
+                </div>
+
+                <!-- No Results State -->
+                <div class="empty-state" id="noResultsState" style="display: none;">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No Results Found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                </div>
+
+                <!-- Grid View Container -->
+                <div id="historyGridContainer" class="history-grid-container" style="display: none;"></div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="paginationControls">
+                    <button class="btn-page" id="prevPageBtn" onclick="changePage(-1)" disabled>←</button>
+                    <span class="page-info">Page <span id="currentPage">1</span> of <span
+                            id="totalPages">1</span></span>
+                    <button class="btn-page" id="nextPageBtn" onclick="changePage(1)">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Actions Bar -->
+        <div id="batchActionsBar" class="batch-actions-bar">
+            <span class="selection-info"><span id="selectedCount">0</span> items selected</span>
+            <button class="btn-batch" onclick="batchExport('csv')">Export CSV</button>
+            <button class="btn-batch" onclick="batchDelete()" style="color: #ff3b30;">Delete Selected</button>
+            <button class="btn-batch" onclick="clearSelection()" style="background: transparent;">Cancel</button>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="previewModal" class="modal-overlay" onclick="closeModal(event)">
+            <div class="modal-container">
+                <button class="modal-close"
+                    onclick="document.getElementById('previewModal').style.display = 'none'">&times;</button>
+                <div class="modal-body" id="modalBody">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    <script src="motion.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script src="pwa.js"></script>
+    <script>
+        // Simple script to handle active state or mock history if we wanted to
+        document.addEventListener('DOMContentLoaded', () => {
+            // We can add mock history here later if requested
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepGuard Verification</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        img {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>DeepGuard Dynamic Content Verification</h1>
+    <p>Use this page to verify that the extension correctly detects dynamically added images.</p>
+
+    <button id="addImgBtn">Add Dynamic Image (Simulate Scroll)</button>
+
+    <div class="image-container" id="container">
+        <!-- Static Image -->
+        <div>
+            <h3>Static Image</h3>
+            <img src="https://picsum.photos/300/300?random=1" alt="Static">
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const btn = document.getElementById('addImgBtn');
+        let count = 1;
+
+        btn.addEventListener('click', () => {
+            count++;
+            const div = document.createElement('div');
+            const h3 = document.createElement('h3');
+            h3.textContent = `Dynamic Image ${count}`;
+            const img = document.createElement('img');
+            img.src = `https://picsum.photos/300/300?random=${count}`;
+            img.alt = `Dynamic ${count}`;
+
+            div.appendChild(h3);
+            div.appendChild(img);
+            container.appendChild(div);
+        });
+    </script>
+</body>
+
+</html>

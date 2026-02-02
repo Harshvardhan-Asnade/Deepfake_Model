@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Offline - DeepGuard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive-additions.css">
+    <style>
+        .offline-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--primary-bg);
+        }
+
+        .offline-icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            opacity: 0.3;
+        }
+
+        .offline-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent-yellow);
+            margin-bottom: 20px;
+            font-family: var(--font-display);
+        }
+
+        .offline-message {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .offline-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-retry {
+            padding: 16px 32px;
+            background: var(--accent-yellow);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-retry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(227, 245, 20, 0.3);
+        }
+
+        .btn-home {
+            padding: 16px 32px;
+            background: transparent;
+            color: var(--accent-yellow);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-home:hover {
+            background: rgba(227, 245, 20, 0.1);
+        }
+
+        .offline-tips {
+            margin-top: 60px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            max-width: 600px;
+        }
+
+        .offline-tips h3 {
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .offline-tips ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            color: var(--text-secondary);
+        }
+
+        .offline-tips li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .offline-tips li::before {
+            content: '•';
+            color: var(--accent-yellow);
+            position: absolute;
+            left: 0;
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1 class="offline-title">You're Offline</h1>
+        <p class="offline-message">
+            It looks like you've lost your internet connection. Some features may not be available until you're back
+            online.
+        </p>
+
+        <div class="offline-actions">
+            <button class="btn-retry" onclick="location.reload()">
+                🔄 Try Again
+            </button>
+            <a href="/index.html" class="btn-home">
+                🏠 Go Home
+            </a>
+        </div>
+
+        <div class="offline-tips">
+            <h3>While You're Offline:</h3>
+            <ul>
+                <li>You can still browse previously loaded pages</li>
+                <li>Cached content remains available</li>
+                <li>Analysis history is accessible</li>
+                <li>New analyses require an internet connection</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Auto-retry when online
+        window.addEventListener('online', () => {
+            console.log('Connection restored');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        });
+
+        // Check connection status
+        if (navigator.onLine) {
+            console.log('Online - attempting to reload');
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,90 @@
+{
+    "name": "DeepGuard - AI Deepfake Detection",
+    "short_name": "DeepGuard",
+    "description": "Advanced AI-powered deepfake detection system using cutting-edge machine learning to identify manipulated media with unprecedented accuracy.",
+    "start_url": "/index.html",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#E3F514",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "logo.ico",
+            "sizes": "16x16 32x32 48x48 64x64",
+            "type": "image/x-icon"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/assets/screenshot-desktop.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "DeepGuard Desktop View"
+        },
+        {
+            "src": "/assets/screenshot-mobile.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "DeepGuard Mobile View"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Analyze Media",
+            "short_name": "Analyze",
+            "description": "Start analyzing media for deepfakes",
+            "url": "/analysis.html",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "View History",
+            "short_name": "History",
+            "description": "View scan history",
+            "url": "/history.html",
+            "icons": [
+                {
+                    "src": "logo.ico",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "categories": [
+        "productivity",
+        "utilities",
+        "security"
+    ],
+    "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "share_target": {
+        "action": "/analysis.html",
+        "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    }
+}

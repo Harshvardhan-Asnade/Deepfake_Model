@@ -1,0 +1,900 @@
+/* ==================== COMPREHENSIVE RESPONSIVE FIXES ==================== */
+/* This file contains ALL responsive fixes for the entire frontend */
+/* Preserves exact visual design on desktop while ensuring perfect mobile adaptation */
+
+/* ==================== GLOBAL OVERFLOW PREVENTION ==================== */
+/* ==================== GLOBAL OVERFLOW PREVENTION ==================== */
+html,
+body {
+    overflow-x: hidden !important;
+    max-width: 100%;
+    /* Changed from 100vw to avoid scrollbar width issues */
+    width: 100%;
+    overscroll-behavior-y: none;
+    /* Prevent bounce on mobile if handled by Lenis */
+}
+
+/* Ensure all major containers respect viewport */
+.container,
+.analysis-container,
+.hero,
+.section,
+[class*="-container"],
+[class*="-wrapper"] {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ==================== UNIVERSAL MEDIA CONSTRAINTS ==================== */
+img,
+video,
+canvas,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ==================== LOADER / ANALYZING SCREEN FIXES ==================== */
+@media (max-height: 700px) {
+
+    /* Fix loader cropping on short screens */
+    #loader-wrapper {
+        padding: 20px;
+    }
+
+    #loader-quote {
+        font-size: clamp(1rem, 4vh, 1.2rem) !important;
+        /* Fluid scaling */
+        margin-bottom: 1rem;
+        max-width: 95%;
+        line-height: 1.2;
+    }
+
+    .counter-wrapper {
+        font-size: clamp(3rem, 8vh, 5rem) !important;
+        /* Stable scaling */
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .detection-status {
+        font-size: 1.2rem !important;
+        margin-bottom: 10px;
+    }
+
+    .loader-meta {
+        bottom: 15px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #loader-quote {
+        font-size: 1rem !important;
+        padding: 10px;
+        letter-spacing: 0.03em;
+    }
+
+    .counter-wrapper {
+        font-size: clamp(4rem, 12vw, 6rem) !important;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .percent-symbol {
+        font-size: 0.5em;
+        /* Generic relative size */
+    }
+}
+
+/* ==================== ANALYSIS PAGE: PROCESSING OVERLAY ==================== */
+.processing-overlay {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100dvh;
+    /* Dynamic viewport height */
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .processing-overlay {
+        padding: 20px;
+    }
+
+    .processing-title {
+        font-size: clamp(16px, 4vw, 18px) !important;
+    }
+
+    .processing-status {
+        font-size: 13px !important;
+    }
+
+    .processing-time {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-height: 600px) {
+    .processing-overlay {
+        padding: 10px;
+    }
+
+    .processing-title {
+        font-size: 16px !important;
+        margin-bottom: 10px;
+    }
+
+    .processing-spinner {
+        width: 40px !important;
+        height: 40px !important;
+    }
+}
+
+/* ==================== PREVIEW AREA: IMAGE/VIDEO CONSTRAINTS ==================== */
+.preview-area {
+    max-width: 100%;
+    /* Use dvh for mobile browser bars */
+    max-height: calc(100dvh - 250px);
+    overflow: hidden;
+}
+
+.preview-area img,
+.preview-area video,
+.preview-area canvas {
+    max-width: 100% !important;
+    max-height: calc(100dvh - 300px) !important;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .preview-area {
+        max-height: 400px;
+        min-height: auto;
+    }
+
+    .preview-area img,
+    .preview-area video,
+    .preview-area canvas {
+        max-height: 350px !important;
+    }
+}
+
+@media (max-height: 700px) {
+    .preview-area {
+        max-height: 300px;
+    }
+
+    .preview-area img,
+    .preview-area video,
+    .preview-area canvas {
+        max-height: 250px !important;
+    }
+}
+
+/* ==================== HEATMAP OVERLAY CONSTRAINTS ==================== */
+.heatmap-overlay,
+.heatmap-container {
+    max-width: 100%;
+    max-height: calc(100vh - 250px);
+    overflow: hidden;
+}
+
+.heatmap-overlay img,
+.heatmap-container img {
+    max-width: 100% !important;
+    max-height: calc(100vh - 300px) !important;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+
+    .heatmap-overlay,
+    .heatmap-container {
+        max-height: 400px;
+    }
+
+    .heatmap-overlay img,
+    .heatmap-container img {
+        max-height: 350px !important;
+    }
+}
+
+/* ==================== VIDEO RESULT PAGE ==================== */
+.video-preview-container {
+    max-width: 100%;
+    max-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+
+.video-preview-container video {
+    max-width: 100% !important;
+    max-height: calc(100vh - 250px) !important;
+    width: auto;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .video-preview-container {
+        max-height: 400px;
+    }
+
+    .video-preview-container video {
+        max-height: 350px !important;
+    }
+}
+
+/* ==================== BOTTOM ACTION PANELS / SHEETS ==================== */
+.action-panel,
+.bottom-sheet,
+.queue-footer,
+[class*="action"] {
+    position: relative;
+    bottom: auto;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+
+    .action-panel,
+    .bottom-sheet {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 12px 16px;
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+
+    .queue-footer {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .queue-footer button {
+        width: 100% !important;
+        min-height: 48px;
+    }
+}
+
+/* ==================== FILE QUEUE MOBILE OPTIMIZATION ==================== */
+@media (max-width: 768px) {
+    .file-queue-container {
+        max-height: calc(100vh - 400px);
+        overflow-y: auto;
+    }
+
+    .file-queue-item {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .queue-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .queue-title {
+        font-size: 16px;
+    }
+
+    .queue-actions {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .queue-actions button {
+        flex: 1;
+        min-height: 44px;
+        font-size: 13px;
+    }
+}
+
+/* ==================== MODALS & OVERLAYS ==================== */
+.modal-overlay,
+.overlay {
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.modal-container,
+.modal-content {
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
+    margin: 20px auto;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+
+    .modal-container,
+    .modal-content {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .modal-close,
+    .btn-close {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+    }
+}
+
+/* ==================== CARDS EXCEEDING VIEWPORT HEIGHT ==================== */
+.card,
+.result-card,
+.analysis-card,
+.verdict-card,
+.metric-card {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+
+    .card,
+    .result-card,
+    .analysis-card {
+        max-height: none;
+        height: auto;
+    }
+
+    .verdict-card {
+        padding: 20px 16px;
+    }
+}
+
+/* ==================== HISTORY / FILTER PANEL HEIGHT FIXES ==================== */
+.history-controls {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .history-controls {
+        max-height: none;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-select {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .export-controls {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .btn-export,
+    .btn-clear-all {
+        width: 100%;
+        min-height: 48px;
+    }
+}
+
+/* ==================== HISTORY TABLE CONSTRAINTS ==================== */
+@media (max-width: 768px) {
+    .history-table-container {
+        max-height: calc(100vh - 350px);
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 640px) {
+    .history-table {
+        min-width: 600px;
+    }
+
+    .table-filename {
+        max-width: 100px;
+    }
+}
+
+/* ==================== FLOATING BUTTONS POSITIONING ==================== */
+.floating-button,
+.btn-floating,
+[class*="floating"] {
+    position: fixed;
+    max-width: calc(100vw - 40px);
+}
+
+@media (max-width: 768px) {
+
+    .floating-button,
+    .btn-floating {
+        bottom: 20px !important;
+        right: 20px !important;
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* ==================== HERO SECTION SHORT SCREENS ==================== */
+@media (max-height: 700px) {
+    .hero {
+        min-height: auto;
+        padding: 80px 0 40px;
+    }
+
+    .hero-title {
+        font-size: 40px;
+        margin-bottom: 15px;
+    }
+
+    .hero-description {
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    .hero-stats {
+        margin-top: 20px;
+        gap: 15px;
+    }
+
+    .hero-actions {
+        gap: 10px;
+        margin-top: 20px;
+    }
+}
+
+/* ==================== ULTRA-WIDE SCREENS (2560px+) ==================== */
+@media (min-width: 2560px) {
+    .container {
+        max-width: 1800px;
+    }
+
+    .analysis-container {
+        max-width: 1600px;
+    }
+
+    .hero-content {
+        max-width: 60%;
+    }
+}
+
+/* ==================== EXTREME ASPECT RATIOS (21:9, 32:9) ==================== */
+@media (min-aspect-ratio: 21/9) {
+    .hero-content {
+        max-width: 55%;
+    }
+
+    .analysis-grid {
+        gap: 60px;
+    }
+}
+
+/* ==================== LANDSCAPE MOBILE (SHORT & WIDE) ==================== */
+@media (max-height: 500px) and (orientation: landscape) {
+    .navbar {
+        padding: 6px 0;
+    }
+
+    .analysis-container {
+        padding-top: 70px;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 50px 0 30px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .section-title {
+        font-size: 24px;
+    }
+
+    .upload-area {
+        min-height: 180px;
+    }
+
+    .preview-area {
+        max-height: 250px;
+    }
+
+    /* Force single column even in landscape if screen is too short */
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ==================== VERY TALL MOBILE SCREENS ==================== */
+@media (min-height: 900px) and (max-width: 480px) {
+
+    /* Optimize for very tall phones */
+    .upload-area {
+        min-height: 450px;
+    }
+
+    .preview-area {
+        max-height: 500px;
+    }
+
+    .section {
+        padding: 80px 0;
+    }
+}
+
+/* ==================== PWA STANDALONE MODE ==================== */
+@media (display-mode: standalone) {
+    body {
+        overscroll-behavior-y: contain;
+    }
+
+    .navbar {
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    .footer {
+        padding-bottom: max(40px, calc(40px + env(safe-area-inset-bottom)));
+    }
+
+    /* Prevent content from hiding behind home indicator */
+    .action-panel,
+    .bottom-sheet,
+    .queue-footer {
+        padding-bottom: max(12px, calc(12px + env(safe-area-inset-bottom)));
+    }
+}
+
+/* ==================== EMPTY STATES ==================== */
+.empty-state {
+    max-width: 100%;
+    padding: 40px 20px;
+}
+
+@media (max-width: 768px) {
+    .empty-state {
+        padding: 30px 16px;
+    }
+
+    .empty-icon {
+        font-size: 40px;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+}
+
+/* ==================== GRID LAYOUTS MOBILE OPTIMIZATION ==================== */
+@media (max-width: 768px) {
+
+    .tech-grid,
+    .showcase-grid,
+    .capabilities-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .model-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .recent-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pipeline {
+        flex-direction: column;
+    }
+
+    .pipeline-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+/* ==================== TOUCH TARGET SIZES (WCAG AAA) ==================== */
+a,
+button,
+input,
+select,
+textarea,
+label,
+[role="button"],
+[onclick],
+[type="checkbox"],
+[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Exception for inline text links */
+p a,
+li a,
+span a {
+    min-height: auto;
+    min-width: auto;
+}
+
+/* ==================== PREVENT iOS ZOOM ON INPUT FOCUS ==================== */
+@media (max-width: 768px) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* ==================== BETTER TAP HIGHLIGHTING ==================== */
+* {
+    -webkit-tap-highlight-color: rgba(227, 245, 20, 0.15);
+}
+
+/* ==================== SAFE SCROLLING ==================== */
+.scrollable {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==================== ENSURE BUTTONS DONT WRAP TEXT ==================== */
+@media (max-width: 480px) {
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-hero-primary,
+    .btn-hero-secondary {
+        font-size: 14px;
+        padding: 12px 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* ==================== STATISTICS SECTION MOBILE ==================== */
+@media (max-width: 480px) {
+    .statistics-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+    }
+}
+
+/* ==================== CONTENT PADDING TOP/BOTTOM FIXES ==================== */
+@media (max-width: 768px) {
+    section {
+        padding: 50px 0;
+    }
+
+    .analysis-container,
+    .history-container {
+        padding-top: 100px;
+        padding-bottom: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    section {
+        padding: 40px 0;
+    }
+
+    .analysis-container,
+    .history-container {
+        padding-top: 90px;
+        padding-bottom: 30px;
+    }
+}
+
+/* ==================== VIDEO PLAYER RESPONSIVE ==================== */
+.video-container,
+.video-window-container,
+.video-content-wrapper {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.video-container video,
+.demo-video {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .img-comp-container {
+        height: 300px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .img-comp-container {
+        height: 250px !important;
+    }
+}
+
+/* ==================== ORBIT/FEATURES SECTION ==================== */
+@media (max-width: 768px) {
+    .orbit-container {
+        min-height: 400px;
+        overflow: hidden;
+    }
+
+    .orbit-stage {
+        transform: scale(0.7);
+    }
+
+    .orbit-info-card {
+        max-width: 90%;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .orbit-stage {
+        transform: scale(0.5);
+    }
+}
+
+/* ==================== EXTENSION SECTION ==================== */
+@media (max-width: 768px) {
+    .extension-container {
+        flex-direction: column;
+    }
+
+    .extension-content,
+    .extension-visual {
+        width: 100%;
+    }
+}
+
+/* ==================== ENSURE NO ELEMENT EXCEEDS VIEWPORT ==================== */
+* {
+    max-width: 100vw;
+}
+
+/* Allow specific elements to be full width */
+html,
+body,
+.mesh-background,
+#particles-js,
+#canvas-container,
+.noise-overlay {
+    max-width: none;
+}
+
+/* ==================== BATCH ACTIONS BAR MOBILE ==================== */
+@media (max-width: 768px) {
+    .batch-actions-bar {
+        width: 90%;
+        max-width: 400px;
+        bottom: 20px;
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-batch {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
+/* ==================== PAGINATION MOBILE ==================== */
+@media (max-width: 768px) {
+    .pagination {
+        gap: 8px;
+        padding-bottom: 40px;
+    }
+
+    .btn-page {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .page-info {
+        font-size: 13px;
+    }
+}
+
+/* ==================== FIX ANY FIXED POSITIONING OVERFLOW ==================== */
+@media (max-width: 768px) {
+
+    [style*="position: fixed"],
+    [style*="position:fixed"] {
+        max-width: 100vw;
+    }
+}
+
+/* ==================== LANDSCAPE TABLET ==================== */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+    .analysis-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .upload-area {
+        min-height: 350px;
+    }
+
+    .preview-area {
+        max-height: 400px;
+    }
+}
+
+/* ==================== PORTRAIT TABLET ==================== */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+    .analysis-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .container {
+        padding: 0 30px;
+    }
+}
+
+/* ==================== ENSURE TEXT DOESNT OVERFLOW ==================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* ==================== FINAL SAFETY NET ==================== */
+@media (max-width: 768px) {
+
+    /* Ensure absolutely nothing causes horizontal scroll */
+    * {
+        max-width: 100vw !important;
+    }
+
+    /* Exception for background elements */
+    .mesh-background,
+    #particles-js,
+    #canvas-container,
+    .noise-overlay,
+    .gradient-orb,
+    .floating-3d-object,
+    body,
+    html {
+        max-width: none !important;
+    }
+}

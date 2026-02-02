@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepGuard - Premium</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="icons/icon48.png" alt="DeepGuard">
+                <div class="logo-text">
+                    <h1>DeepGuard</h1>
+                    <div class="tagline">AI Protection</div>
+                </div>
+            </div>
+            <div class="status-indicator" id="apiStatus" title="System Status"></div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-zone-compact" id="uploadZone">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <div class="upload-text">
+                        <strong>Drop Image to Analyze</strong>
+                        <span>or click to browse</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div class="loading" id="loadingState" style="display: none;">
+                <div class="scanner"></div>
+                <div class="loading-text">Analyzing pixels...</div>
+            </div>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="result-card">
+                    <div class="result-image-container">
+                        <img id="resultImage" alt="Analyzed image">
+                        <div class="result-badge" id="resultBadge">
+                            <span class="result-label" id="resultLabel">REAL</span>
+                        </div>
+                    </div>
+
+                    <div class="score-display">
+                        <div>
+                            <div class="score-label">Confidence Score</div>
+                            <div class="score-value" id="resultConfidence">98%</div>
+                        </div>
+                        <div style="text-align: right;">
+                             <div class="score-label">Status</div>
+                             <div class="status-text" id="statusValue" style="font-weight: 600; font-size: 14px;">Verified</div>
+                             <span id="confidenceDetail" style="display:none"></span> <!-- Hidden but kept for ID compatibility -->
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary" id="newCheckBtn">Check Another Image</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section class="history-compact" id="historyCompact">
+                <div class="history-header">
+                    <span>Recent Scans</span>
+                    <button class="btn-clear" id="clearHistoryBtn">Clear</button>
+                </div>
+                <div class="history-grid" id="historyGrid">
+                    <div class="empty-history">No recent history</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

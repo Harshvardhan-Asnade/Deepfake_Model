@@ -1,0 +1,93 @@
+/* Extension Section Styles */
+.extension-section {
+    padding: 100px 0;
+    position: relative;
+    background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
+    overflow: hidden;
+}
+
+.extension-container {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    position: relative;
+    z-index: 2;
+}
+
+.extension-content {
+    flex: 1;
+    text-align: left;
+}
+
+.extension-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(227, 245, 20, 0.1);
+    border: 1px solid rgba(227, 245, 20, 0.2);
+    border-radius: 100px;
+    color: var(--accent-yellow);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.extension-title {
+    font-size: 48px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.extension-description {
+    font-size: 18px;
+    color: #999;
+    margin-bottom: 32px;
+    line-height: 1.6;
+}
+
+.chrome-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    color: #000;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.chrome-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+.chrome-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.extension-visual {
+    flex: 1.2;
+}
+
+/* Reusing window styles but ensuring specific context */
+.extension-visual .video-window-container {
+    box-shadow: -30px 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 968px) {
+    .extension-container {
+        flex-direction: column-reverse;
+        /* Video on top on mobile? Or text on top? usually text on top. column-reverse puts visual first if html is visual last. */
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .extension-content {
+        text-align: center;
+    }
+}

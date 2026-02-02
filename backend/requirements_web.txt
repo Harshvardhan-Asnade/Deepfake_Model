@@ -1,0 +1,12 @@
+flask==3.0.0
+flask-cors==4.0.0
+torch
+torchvision
+opencv-python
+albumentations
+Pillow
+numpy
+safetensors
+c2pa-python
+invisible-watermark==0.2.0
+ExifRead
