@@ -553,6 +553,48 @@
 }
 
 @media (max-width: 768px) {
+
+    /* History Controls Mobile */
+    .history-controls {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .search-container {
+        min-width: 100%;
+    }
+
+    .search-input {
+        padding: 14px 16px;
+        font-size: 15px;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 15px;
+        min-width: 100%;
+    }
+
+    .export-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-export,
+    .btn-clear-all {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 48px;
+    }
+
+    /* History Table Mobile */
     .history-table {
         font-size: 12px;
     }
@@ -577,8 +619,89 @@
     }
 
     .btn-table-action {
-        padding: 4px 8px;
+        padding: 8px 12px;
         font-size: 11px;
+        min-height: 36px;
+        width: 100%;
+    }
+
+    /* History Grid Mobile */
+    .history-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .history-card {
+        padding: 16px;
+    }
+
+    /* Grid View Mobile */
+    .history-grid-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* View Toggle Mobile */
+    .view-toggle {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .btn-toggle {
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    /* Pagination Mobile */
+    .pagination {
+        padding-bottom: 40px;
+        gap: 8px;
+    }
+
+    .btn-page {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Batch Actions Mobile */
+    .batch-actions-bar {
+        bottom: 20px;
+        padding: 12px 20px;
+        width: 90%;
+        max-width: 400px;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-batch {
+        width: 100%;
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .history-controls {
+        padding: 12px;
+    }
+
+    .results-count {
+        font-size: 13px;
+    }
+
+    /* Make table horizontally scrollable on very small screens */
+    .history-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .history-table {
+        min-width: 600px;
+    }
+
+    .table-filename {
+        max-width: 100px;
     }
 }
 

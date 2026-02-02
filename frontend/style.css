@@ -548,6 +548,10 @@ body {
     line-height: 1.5;
     overflow-x: hidden;
     perspective: 1000px;
+    /* Prevent horizontal overflow on all screen sizes */
+    max-width: 100vw;
+    width: 100%;
+    position: relative;
 }
 
 /* Scroll Progress Bar */
@@ -706,6 +710,9 @@ body {
     max-width: var(--container-width);
     margin: 0 auto;
     padding: 0 40px;
+    /* Ensure container never exceeds viewport */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ==================== NAVIGATION ==================== */
@@ -719,6 +726,10 @@ body {
     backdrop-filter: none;
     border-bottom: none;
     padding: 20px 0;
+    /* iOS Safe Area Support */
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
 
@@ -2541,29 +2552,113 @@ html.lenis {
     background: var(--secondary-bg);
     padding: 80px 0 40px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            var(--accent-yellow) 20%,
+            var(--accent-purple) 50%,
+            var(--accent-yellow) 80%,
+            transparent);
+    opacity: 0.5;
 }
 
 .footer-content {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 60px;
+    grid-template-columns: 2fr 3fr;
+    gap: 80px;
     margin-bottom: 60px;
 }
 
 .footer-brand {
-    max-width: 350px;
+    max-width: 400px;
 }
 
 .footer-description {
     color: var(--text-secondary);
     margin-top: 20px;
+    margin-bottom: 30px;
     line-height: 1.8;
+    font-size: 15px;
 }
 
-.footer-column h4 {
+/* Social Links */
+.footer-social {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-yellow), var(--accent-purple));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.social-link svg {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.social-link:hover {
+    border-color: var(--accent-yellow);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+}
+
+.social-link:hover::before {
+    opacity: 0.15;
+}
+
+.social-link:hover svg {
+    transform: scale(1.1);
+    color: var(--accent-yellow);
+}
+
+/* Footer Links */
+.footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
+}
+
+
+.footer-title {
     font-size: 16px;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .footer-column ul {
@@ -2571,42 +2666,117 @@ html.lenis {
 }
 
 .footer-column ul li {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .footer-column ul li a {
     color: var(--text-secondary);
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    position: relative;
+}
+
+.link-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    opacity: 0.7;
 }
 
 .footer-column ul li a:hover {
-    color: var(--text-primary);
+    color: var(--accent-yellow);
+    transform: translateX(5px);
 }
 
+.footer-column ul li a:hover .link-icon {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+/* Footer Bottom */
 .footer-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 40px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
     color: var(--text-secondary);
     font-size: 14px;
 }
 
+.footer-copyright {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.footer-copyright p {
+    margin: 0;
+}
+
+.footer-tagline {
+    font-size: 12px;
+    opacity: 0.7;
+    font-style: italic;
+}
+
 .footer-legal {
     display: flex;
-    gap: 30px;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-legal .separator {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .footer-legal a {
     color: var(--text-secondary);
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 5px;
 }
 
 .footer-legal a:hover {
-    color: var(--text-primary);
+    color: var(--accent-yellow);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+/* Decorative Glow */
+.footer-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent,
+            var(--accent-yellow) 30%,
+            var(--accent-purple) 50%,
+            var(--accent-yellow) 70%,
+            transparent);
+    opacity: 0.4;
+    filter: blur(2px);
+    animation: footerGlow 3s ease-in-out infinite;
+}
+
+@keyframes footerGlow {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        filter: blur(2px);
+    }
+
+    50% {
+        opacity: 0.6;
+        filter: blur(4px);
+    }
 }
 
 /* ==================== RESPONSIVE ==================== */
@@ -2825,6 +2995,14 @@ input:checked+.slider:before {
     /* Removed fixed height to allow content to dictate size */
 }
 
+/* Make analysis grid responsive on tablets and smaller */
+@media (max-width: 1024px) {
+    .analysis-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
 /* Upload Section (Left) */
 .upload-section {
     display: flex;
@@ -2856,6 +3034,7 @@ input:checked+.slider:before {
     justify-content: center;
     transition: all 0.3s ease;
     min-height: 400px;
+    padding: 20px;
 }
 
 .upload-area:hover {
@@ -4762,6 +4941,198 @@ body.menu-open {
         padding: 0 20px;
     }
 
+    /* ==================== ANALYSIS PAGE MOBILE FIXES ==================== */
+    .analysis-container {
+        padding: 100px 20px 40px;
+    }
+
+    .analysis-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .section-header-small h2 {
+        font-size: 24px;
+    }
+
+    .section-header-small p {
+        font-size: 14px;
+    }
+
+    .upload-area {
+        min-height: 280px;
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    .upload-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .upload-title {
+        font-size: 18px;
+    }
+
+    .upload-description {
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .btn-primary {
+        min-height: 48px;
+        padding: 14px 28px;
+        font-size: 15px;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    /* Preview Area Mobile */
+    .preview-area {
+        border-radius: 16px;
+        min-height: 300px;
+    }
+
+    .btn-close-preview {
+        width: 44px;
+        height: 44px;
+        top: 12px;
+        right: 12px;
+        font-size: 28px;
+    }
+
+    /* Heatmap Toggle Mobile */
+    .heatmap-toggle-container {
+        bottom: 12px;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    /* Processing Overlay Mobile */
+    .processing-overlay {
+        border-radius: 16px;
+    }
+
+    .processing-title {
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+
+    .processing-status {
+        font-size: 14px;
+    }
+
+    .processing-time {
+        font-size: 13px;
+    }
+
+    /* Results Section Mobile */
+    .results-section {
+        padding: 20px;
+    }
+
+    .verdict-card {
+        padding: 24px 20px;
+    }
+
+    .verdict-label {
+        font-size: 11px;
+    }
+
+    .verdict-title {
+        font-size: 28px;
+    }
+
+    .meter-value {
+        font-size: 16px;
+    }
+
+    /* Metrics Grid Mobile */
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .metric-card {
+        padding: 16px;
+    }
+
+    .metric-label {
+        font-size: 13px;
+    }
+
+    .metric-value {
+        font-size: 20px;
+    }
+
+    /* File Queue Mobile */
+    .file-queue-container {
+        border-radius: 16px;
+    }
+
+    .queue-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .queue-actions {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .queue-actions button {
+        flex: 1;
+        min-height: 44px;
+    }
+
+    .file-queue-item {
+        padding: 12px;
+    }
+
+    .queue-footer {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .queue-footer button {
+        width: 100% !important;
+        min-height: 48px;
+    }
+
+    /* Statistics Cards Mobile */
+    .statistics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .stat-card {
+        padding: 20px 16px;
+    }
+
+    .stat-icon {
+        font-size: 32px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+    }
+
+    /* Recent Grid Mobile */
+    .recent-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .recent-card {
+        padding: 16px;
+    }
+
     /* ==================== GLOBAL RESETS ==================== */
     * {
         -webkit-tap-highlight-color: transparent;
@@ -5605,6 +5976,49 @@ body.menu-open {
 
     .section-subtitle {
         font-size: 14px;
+    }
+
+    /* ==================== ANALYSIS PAGE EXTRA SMALL SCREENS ==================== */
+    .analysis-container {
+        padding: 90px 16px 30px;
+    }
+
+    .section-header-small h2 {
+        font-size: 22px;
+    }
+
+    .upload-area {
+        min-height: 240px;
+        padding: 16px 12px;
+    }
+
+    .upload-title {
+        font-size: 16px;
+    }
+
+    .upload-description {
+        font-size: 12px;
+        padding: 0 8px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        max-width: none;
+        font-size: 14px;
+        padding: 14px 24px;
+    }
+
+    .verdict-title {
+        font-size: 24px;
+    }
+
+    .metric-value {
+        font-size: 18px;
+    }
+
+    /* Statistics Grid Single Column on Very Small Screens */
+    .statistics-grid {
+        grid-template-columns: 1fr;
     }
 
     /* ==================== NAVIGATION ==================== */
