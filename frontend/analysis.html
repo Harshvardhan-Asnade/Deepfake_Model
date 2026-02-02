@@ -219,11 +219,22 @@
                         <div class="warmup-alert" id="warmupAlert" style="display: none;">
                             <div class="warmup-icon">⏳</div>
                             <div class="warmup-content">
-                                <h4>The AI model is waking up</h4>
-                                <p>This may take 10–30 seconds on first use.</p>
-                                <p class="warmup-reason">On cloud deployments (like Hugging Face), models go to sleep
-                                    when idle to save resources.</p>
-                                <p class="warmup-reassurance">✓ This only happens on the first request</p>
+                                <div class="warmup-progress-wrapper" style="width: 100%;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #fff;">
+                                        <span>Model Waking Up</span>
+                                        <span id="warmupPercent">0%</span>
+                                    </div>
+                                    <div
+                                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative;">
+                                        <div id="warmupProgressFill"
+                                            style="width: 0%; height: 100%; background: #E3F514; border-radius: 10px; transition: width 0.3s linear; box-shadow: 0 0 10px rgba(227, 245, 20, 0.5);">
+                                        </div>
+                                    </div>
+                                    <p class="warmup-reassurance"
+                                        style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.6);">✓
+                                        Starting cloud instance (first run only)</p>
+                                </div>
                             </div>
                         </div>
                     </div>

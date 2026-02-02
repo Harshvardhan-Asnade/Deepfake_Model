@@ -2252,10 +2252,30 @@ function showProcessingOverlay(isVideo = false) {
         if (warmupAlert && overlay.style.display === 'flex') {
             warmupAlert.style.display = 'flex';
             if (processingMessage) {
-                processingMessage.textContent = 'Model is initializing • This is normal for cloud deployments';
+                processingMessage.textContent = 'Model is initializing...';
+            }
+
+            // Start Progress Bar Animation
+            let progress = 0;
+            const bar = document.getElementById('warmupProgressFill');
+            const label = document.getElementById('warmupPercent');
+
+            if (bar && label) {
+                bar.style.width = '0%';
+                label.textContent = '0%';
+
+                if (window.warmupProgressInterval) clearInterval(window.warmupProgressInterval);
+
+                window.warmupProgressInterval = setInterval(() => {
+                    progress += Math.random() * 1.5; // Slow random increment
+                    if (progress > 95) progress = 95; // Cap at 95% until actual completion
+
+                    bar.style.width = `${progress}%`;
+                    label.textContent = `${Math.round(progress)}%`;
+                }, 400);
             }
         }
-    }, 7000); // Show warm-up alert after 7 seconds
+    }, 5000); // Show warm-up alert after 5 seconds (reduced from 7s for better feedback)
 }
 
 /**
@@ -2269,7 +2289,9 @@ function hideProcessingOverlay() {
     if (!overlay) return;
 
     // Clear timers
+    // Clear timers
     clearTimeout(warmupTimerTimeout);
+    if (window.warmupProgressInterval) clearInterval(window.warmupProgressInterval);
     clearInterval(processingTimerInterval);
 
     // Show completion
