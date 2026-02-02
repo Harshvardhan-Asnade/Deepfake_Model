@@ -30,6 +30,8 @@ const STATIC_ASSETS = [
     '/orbit_interaction.js',
     '/three_bg.js',
     '/logo.ico',
+    '/icon-192.png',
+    '/icon-512.png',
     '/manifest.json'
 ];
 
@@ -163,8 +165,8 @@ self.addEventListener('push', (event) => {
     const title = data.title || 'DeepGuard';
     const options = {
         body: data.body || 'Analysis complete',
-        icon: '/logo.ico',
-        badge: '/logo.ico',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
         vibrate: [200, 100, 200],
         data: {
             url: data.url || '/history.html'
