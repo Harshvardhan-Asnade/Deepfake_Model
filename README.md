@@ -1,6 +1,6 @@
 ---
 title: Deepfake Detection Model
-emoji: ��️
+emoji: 🛡️
 colorFrom: blue
 colorTo: indigo
 sdk: docker
@@ -59,4 +59,3 @@ Open `http://localhost:7860` in your browser.
 ---
 
 For full documentation, please visit the **[Documentation Folder](Documentation/)**.
-
