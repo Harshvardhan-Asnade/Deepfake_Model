@@ -1,5 +1,8 @@
 FROM python:3.10
 
+# Explicitly set the port for Hugging Face Spaces
+ENV PORT=7860
+
 # Set working directory to /code
 WORKDIR /code
 

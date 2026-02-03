@@ -352,6 +352,9 @@ def predict():
         # Make prediction
         result, error = predict_image(filepath)
         
+        if error:
+            return jsonify({'error': error}), 500
+            
         # Save to History
         import shutil
         history_filename = f"scan_{int(datetime.datetime.now().timestamp())}_{filename}"
@@ -597,7 +600,14 @@ if __name__ == '__main__':
     load_model()
     
     print("=" * 60)
-    port = int(os.environ.get("PORT", 7777))
+    print("=" * 60)
+    # Check if running on Hugging Face Spaces
+    if os.environ.get("SPACE_ID"):
+        port = 7860
+        print(f"🪐 Detected Hugging Face Space. Forcing port {port}")
+    else:
+        port = int(os.environ.get("PORT", 7860))
+        
     print(f"🌐 Starting server on http://0.0.0.0:{port}")
     print("=" * 60)
     
