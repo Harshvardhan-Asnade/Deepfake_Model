@@ -262,4 +262,9 @@ function initThreeBackground() {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initThreeBackground);
+// Initialize immediately if DOM is already ready (since we load this script dynamically)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThreeBackground);
+} else {
+    initThreeBackground();
+}
