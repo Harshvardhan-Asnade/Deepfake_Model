@@ -4,7 +4,7 @@
 // API URL Configuration
 // LOCAL DEVELOPMENT BRANCH - Always use localhost
 // This branch is configured for local-only development and testing
-const API_BASE_URL = CONFIG.API_BASE_URL;
+const API_BASE_URL = 'http://localhost:7860';
 
 // ==================== BACKEND COLD START HANDLER ====================
 async function checkBackendHealth(retries = 30) {

@@ -3,7 +3,7 @@
  * Handles offline functionality, caching, and PWA features
  */
 
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.0';
 const CACHE_NAME = `deepguard-${CACHE_VERSION}`;
 
 // Assets to cache immediately on install
