@@ -2,10 +2,9 @@
 // Moved to loader.js
 
 // API URL Configuration
-// Automatically select between Localhost and Production
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:7860'
-    : 'https://harshasnade-deepfake-detection-model.hf.space';
+// LOCAL DEVELOPMENT BRANCH - Always use localhost
+// This branch is configured for local-only development and testing
+const API_BASE_URL = 'http://localhost:7860';
 
 // ==================== BACKEND COLD START HANDLER ====================
 async function checkBackendHealth(retries = 30) {

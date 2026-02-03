@@ -504,9 +504,21 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="three_bg.js"></script>
+    <script>
+        // Performance Optimization: Only load Three.js 3D background on Desktop/Tablet (> 768px)
+        // This saves ~600KB of data and significant battery/GPU usage on mobile devices
+        if (window.innerWidth >= 768) {
+            const scriptThree = document.createElement('script');
+            scriptThree.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            scriptThree.onload = () => {
+                const scriptBg = document.createElement('script');
+                scriptBg.src = 'three_bg.js';
+                document.body.appendChild(scriptBg);
+            };
+            document.body.appendChild(scriptThree);
+        }
+    </script>
     <script src="loader.js"></script>
     <script src="script.js"></script>
     <script src="hero_reveal.js"></script>
