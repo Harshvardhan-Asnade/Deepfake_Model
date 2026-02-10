@@ -7,14 +7,33 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
     ? 'http://localhost:7860'
     : 'https://harshasnade-deepfake-detection-model.hf.space';
 
+// ==================== SESSION MANAGEMENT ====================
+function getSessionId() {
+    let sessionId = localStorage.getItem('deepguard_session_id');
+    if (!sessionId) {
+        // Generate a new session ID if it doesn't exist
+        sessionId = typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deepguard_session_id', sessionId);
+    }
+    return sessionId;
+}
+
 // ==================== BACKEND COLD START HANDLER ====================
-async function checkBackendHealth(retries = 30) {
+// ==================== BACKEND COLD START HANDLER ====================
+async function checkBackendHealth(retries = 100) { // Increased retries for cold starts (approx 2 mins)
     const healthUrl = `${API_BASE_URL}/api/health`;
 
     try {
         const response = await fetch(healthUrl, { method: 'GET' });
         if (response.ok) {
             console.log('✅ Backend is ready!');
+            // Signal loader to finish
+            window.isBackendReady = true;
+
+            // If loader is already done (rare, or if user navigated away and back), this does nothing harmful
+            // If loader is stuck at 99%, this will release it.
             return true;
         }
     } catch (error) {
@@ -22,18 +41,38 @@ async function checkBackendHealth(retries = 30) {
     }
 
     if (retries > 0) {
-        showToast('⏳ Model is waking up from sleep. Please wait...', 'info');
-        // Retry every 5 seconds
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // If we are still loading, tell the loader
+        if (window.updateLoaderStatus) {
+            window.updateLoaderStatus("STARTING SERVER...");
+        } else {
+            // Fallback if loader JS hasn't initialized or strictly separate
+            console.log("Waiting for server...");
+        }
+
+        // Show toast only if it's taking a while (e.g., after 5s)
+        if (retries < 95) { // Assuming 30 retries originally, now 100.
+            // Avoid spamming toasts if the loader is visible covering everything
+            // showToast('⏳ Model is waking up from sleep. Please wait...', 'info');
+        }
+
+        // Retry every 2 seconds (faster polling)
+        await new Promise(resolve => setTimeout(resolve, 2000));
         return checkBackendHealth(retries - 1);
     }
 
+    // Failed after all retries
+    if (window.updateLoaderStatus) {
+        window.updateLoaderStatus("SERVER ERROR");
+    }
     showToast('❌ Backend failed to start. Please refresh.', 'error');
     return false;
 }
 
 // Check status immediately on load
 document.addEventListener('DOMContentLoaded', () => {
+    // Start ensuring backend is ready. 
+    // The loader is already running (initLoader called in loader.js).
+    // checking logic runs in parallel.
     checkBackendHealth();
 });
 
@@ -1067,6 +1106,9 @@ async function handleAnalysisUpload(file) {
 
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
+            headers: {
+                'X-Session-ID': getSessionId()
+            },
             body: formData
         });
 
@@ -1380,7 +1422,8 @@ async function submitFeedback(isCorrect) {
         const response = await fetch(`${API_BASE_URL}/api/feedback`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Session-ID': getSessionId()
             },
             body: JSON.stringify({
                 scan_id: currentScanId,
@@ -1734,7 +1777,11 @@ async function loadHistory() {
     if (!historyList) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/history`);
+        const response = await fetch(`${API_BASE_URL}/api/history`, {
+            headers: {
+                'X-Session-ID': getSessionId()
+            }
+        });
         const history = await response.json();
 
         if (history.length > 0) {
@@ -1936,7 +1983,12 @@ async function deleteScan(scanId, event) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/history/${scanId}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE_URL}/api/history/${scanId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Session-ID': getSessionId()
+            }
+        });
         if (response.ok) {
             // Remove the card from DOM directly instead of reloading
             if (targetCard) {
@@ -1975,7 +2027,12 @@ async function clearHistory() {
 
 
     try {
-        await fetch(`${API_BASE_URL}/api/history`, { method: 'DELETE' });
+        await fetch(`${API_BASE_URL}/api/history`, {
+            method: 'DELETE',
+            headers: {
+                'X-Session-ID': getSessionId()
+            }
+        });
         loadHistory(); // Reload UI
     } catch (err) {
         console.error('Failed to clear history:', err);

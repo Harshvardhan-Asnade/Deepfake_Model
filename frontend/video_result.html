@@ -5,13 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Video Analysis Results - DeepGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="variables.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="animations.css">
+    <link rel="stylesheet" href="pwa.css">
     <link rel="stylesheet" href="responsive-additions.css">
+    <link rel="stylesheet" href="responsive-pages.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E3F514">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DeepGuard">
+    <link rel="apple-touch-icon" href="logo.ico">
     <style>
         /* ==================== VIDEO RESULT SPECIFIC STYLES ==================== */
 
@@ -1164,17 +1181,27 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <div class="nav-content" style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="nav-content">
                 <a href="index.html" class="logo">
-                    <img src="logo.ico" alt="DeepGuard" class="logo-img" style="height: 40px;">
-                    <span class="logo-text"
-                        style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">Deep<span
-                            style="color: var(--accent-yellow);">Guard</span></span>
+                    <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                    <span class="logo-text">Deep<span class="gradient-text">Guard</span></span>
                 </a>
-                <div class="nav-links" style="display: flex; gap: 15px;">
-                    <a href="index.html" class="nav-btn">Home</a>
-                    <a href="history.html" class="nav-btn">History</a>
-                    <a href="index.html#features" class="nav-btn">Features</a>
+
+                <!-- Hamburger Menu Button (Mobile) -->
+                <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation Menu -->
+                <div class="nav-menu-wrapper">
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="analysis.html">Analysis</a></li>
+                        <li><a href="history.html">History</a></li>
+                    </ul>
+                    <a href="analysis.html" class="btn-secondary-nav">← Analyze New</a>
                 </div>
             </div>
         </div>
@@ -1281,63 +1308,86 @@
             <div class="dashboard-sidebar">
 
                 <!-- Action Button moved here -->
-                <a href="index.html" class="btn-secondary-outline"
-                    style="width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; padding: 12px;">
-                    <i class="fas fa-file-upload"></i> Analyze Another File
+                <a href="analysis.html" class="btn-secondary-outline"
+                    style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 20px; padding: 14px; border-radius: 14px; font-weight: 600; transition: all 0.3s ease;">
+                    <i class="fas fa-plus-circle"></i> Analyze Another File
                 </a>
 
                 <!-- Verdict Section -->
                 <div class="verdict-card" id="verdictCard"
-                    style="margin: 0; flex-direction: column; text-align: center; gap: 1.5rem; padding: 2rem;">
-                    <div class="verdict-icon" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto;">
-                        <i class="fas fa-video"></i>
+                    style="margin: 0; flex-direction: column; text-align: center; gap: 1.5rem; padding: 2rem; transition: border-color 0.5s ease;">
+                    <div style="position: relative; display: inline-flex; margin: 0 auto;">
+                        <div
+                            style="position: absolute; inset: -8px; border-radius: 50%; border: 2px solid rgba(227, 245, 20, 0.3); animation: iconPulse 2.5s ease-in-out infinite;">
+                        </div>
+                        <div class="verdict-icon" style="width: 80px; height: 80px; font-size: 32px;">
+                            <i class="fas fa-video"></i>
+                        </div>
                     </div>
                     <div class="verdict-info" style="width: 100%;">
-                        <h2 id="verdictTitle" style="font-size: 1.8rem;">ANALYZING...</h2>
+                        <h2 id="verdictTitle" style="font-size: 1.8rem; letter-spacing: -0.02em;">ANALYZING...</h2>
                         <div class="confidence-meter">
                             <div class="meter-bar">
                                 <div class="meter-fill" id="confidenceBar" style="width: 0%"></div>
                             </div>
-                            <span id="confidenceValue">0% Confidence</span>
+                            <span id="confidenceValue" style="font-family: 'Space Grotesk', sans-serif;">0%
+                                Confidence</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Compact Stats Grid -->
                 <div class="compact-stats-grid" id="statsGrid">
-                    <div class="stat-card-compact">
+                    <div class="stat-card-compact" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-yellow), transparent); border-radius: 3px 3px 0 0;">
+                        </div>
                         <div class="stat-icon"><i class="fas fa-clock"></i></div>
                         <div class="stat-value" id="videoDuration">--</div>
                         <div class="stat-label">Duration</div>
                     </div>
-                    <div class="stat-card-compact">
-                        <div class="stat-icon"><i class="fas fa-film"></i></div>
+                    <div class="stat-card-compact" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #3b82f6, transparent); border-radius: 3px 3px 0 0;">
+                        </div>
+                        <div class="stat-icon" style="color: #3b82f6;"><i class="fas fa-film"></i></div>
                         <div class="stat-value" id="framesProcessed">--</div>
                         <div class="stat-label">Frames</div>
                     </div>
-                    <div class="stat-card-compact">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-card-compact" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #ff6b6b, transparent); border-radius: 3px 3px 0 0;">
+                        </div>
+                        <div class="stat-icon" style="color: #ff6b6b;"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="stat-value" id="suspiciousCount">--</div>
                         <div class="stat-label">Suspicious</div>
                     </div>
-                    <div class="stat-card-compact">
-                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="stat-card-compact" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #f59e0b, transparent); border-radius: 3px 3px 0 0;">
+                        </div>
+                        <div class="stat-icon" style="color: #f59e0b;"><i class="fas fa-percentage"></i></div>
                         <div class="stat-value" id="avgProb">--</div>
                         <div class="stat-label">Fake Prob</div>
                     </div>
                 </div>
 
                 <!-- Analysis Details -->
-                <div class="detail-card" style="margin: 0; flex: 1;">
-                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                <div class="detail-card" style="margin: 0; flex: 1; position: relative; overflow: hidden;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-yellow), transparent);">
+                    </div>
+                    <h3
+                        style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif;">
                         <i class="fas fa-file-alt" style="color: var(--accent-yellow);"></i>
                         Detection Notes
                     </h3>
-                    <p id="analysisNotes"
-                        style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    <div id="analysisNotes"
+                        style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; font-size: 0.95rem;">
                         Loading analysis details...
-                    </p>
-                    <button id="downloadReportBtn" class="btn-download" style="width: 100%; justify-content: center;">
+                    </div>
+                    <button id="downloadReportBtn" class="btn-download"
+                        style="width: 100%; justify-content: center; position: relative; overflow: hidden;">
                         <i class="fas fa-file-pdf"></i> Download Report
                     </button>
                 </div>
@@ -1386,6 +1436,41 @@
 
 
     </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="position: relative; z-index: 1;">
+        <div class="container">
+            <div class="footer-content-minimal">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                        <span class="logo-text">Deep<span style="color: var(--accent-yellow);">Guard</span></span>
+                    </div>
+                </div>
+                <p class="footer-tagline-premium">Protecting digital truth with AI</p>
+                <div class="footer-links-premium">
+                    <a href="https://harshasnade-deepfake-detection.hf.space" target="_blank"
+                        class="footer-link-premium-item">
+                        <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face">
+                        <span>Models</span>
+                    </a>
+                    <a href="https://github.com/Harshvardhan-Asnade/Deepfake-Model" target="_blank"
+                        class="footer-link-premium-item">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+                <div class="footer-copyright-premium">
+                    <p>&copy; 2024 <span style="color: var(--accent-yellow); font-weight: 700;">DeepGuard</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-glow-enhanced"></div>
+        <div class="footer-glow"></div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
@@ -1449,6 +1534,7 @@
 
     <script src="config.js"></script>
     <script src="video_result.js"></script>
+    <script src="mobile.js"></script>
 </body>
 
 </html>

@@ -51,6 +51,12 @@ def init_db():
             print("✅ Added tags column.")
         except sqlite3.Error:
             pass
+
+        try:
+            conn.execute('ALTER TABLE history ADD COLUMN session_id TEXT')
+            print("✅ Added session_id column.")
+        except sqlite3.Error:
+            pass
         
         # Create feedback table for user feedback on predictions
         try:
@@ -75,14 +81,14 @@ def init_db():
         finally:
             conn.close()
 
-def add_scan(filename, prediction, confidence, fake_prob, real_prob, image_path=""):
+def add_scan(filename, prediction, confidence, fake_prob, real_prob, image_path="", session_id=None):
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.execute('''
-                INSERT INTO history (filename, prediction, confidence, fake_probability, real_probability, image_path)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (filename, prediction, confidence, fake_prob, real_prob, image_path))
+                INSERT INTO history (filename, prediction, confidence, fake_probability, real_probability, image_path, session_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (filename, prediction, confidence, fake_prob, real_prob, image_path, session_id))
             conn.commit()
             scan_id = cursor.lastrowid
             return scan_id
@@ -93,11 +99,24 @@ def add_scan(filename, prediction, confidence, fake_prob, real_prob, image_path=
             conn.close()
     return None
 
-def get_history():
+def get_history(session_id=None):
     conn = get_db_connection()
     if conn:
         try:
-            cursor = conn.execute('SELECT * FROM history ORDER BY timestamp DESC')
+            query = 'SELECT * FROM history'
+            params = []
+            if session_id:
+                query += ' WHERE session_id = ? OR session_id IS NULL' # Allow seeing public/legacy items if desired, or strictly session specific
+                # Strict session isolation:
+                query = 'SELECT * FROM history WHERE session_id = ?'
+                params = [session_id]
+            else:
+                # If no session_id provided (legacy behavior), maybe show all or none?
+                # Let's show only items with NULL session_id to avoid leaking user data
+                query = 'SELECT * FROM history WHERE session_id IS NULL'
+            
+            query += ' ORDER BY timestamp DESC'
+            cursor = conn.execute(query, params)
             history = [dict(row) for row in cursor.fetchall()]
             return history
         except sqlite3.Error as e:
@@ -107,11 +126,14 @@ def get_history():
             conn.close()
     return []
 
-def clear_history():
+def clear_history(session_id=None):
     conn = get_db_connection()
     if conn:
         try:
-            conn.execute('DELETE FROM history')
+            if session_id:
+                conn.execute('DELETE FROM history WHERE session_id = ?', (session_id,))
+            else:
+                conn.execute('DELETE FROM history WHERE session_id IS NULL')
             conn.commit()
             return True
         except sqlite3.Error as e:
@@ -121,11 +143,14 @@ def clear_history():
             conn.close()
     return False
 
-def delete_scan(scan_id):
+def delete_scan(scan_id, session_id=None):
     conn = get_db_connection()
     if conn:
         try:
-            conn.execute('DELETE FROM history WHERE id = ?', (scan_id,))
+            if session_id:
+                conn.execute('DELETE FROM history WHERE id = ? AND session_id = ?', (scan_id, session_id))
+            else:
+                conn.execute('DELETE FROM history WHERE id = ? AND session_id IS NULL', (scan_id,))
             conn.commit()
             return True
         except sqlite3.Error as e:

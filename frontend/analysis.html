@@ -10,10 +10,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="variables.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="animations.css">
     <link rel="stylesheet" href="pwa.css">
     <link rel="stylesheet" href="responsive-additions.css">
+    <link rel="stylesheet" href="responsive-pages.css">
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -244,14 +246,17 @@
             <!-- Right Side: Results & Metrics -->
             <div class="results-section" id="resultsSection">
                 <div class="empty-state">
-                    <div class="empty-icon" aria-hidden="true">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <div class="empty-icon animate-float" aria-hidden="true"
+                        style="opacity: 0.6; color: var(--accent-yellow);">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                         </svg>
                     </div>
-                    <h3>Ready to Analyze</h3>
-                    <p>Upload media to start the DeepGuard detection pipeline</p>
+                    <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 8px;">Ready to
+                        Analyze</h3>
+                    <p style="max-width: 280px; margin: 0 auto; line-height: 1.6;">Upload media to start the DeepGuard
+                        detection pipeline</p>
                 </div>
 
                 <div class="analysis-results" style="display: none;">
@@ -304,22 +309,60 @@
                         <canvas id="probabilityChart" style="max-height: 150px;"></canvas>
                     </div>
 
-                    <div class="metric-card">
-                        <span class="metric-label">Scan Time</span>
+                    <div class="metric-card" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-yellow), transparent); border-radius: 3px 3px 0 0;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="metric-label" style="margin-bottom: 0;">Scan Time</span>
+                        </div>
                         <span class="metric-value" id="scanTimeDisplay">--</span>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-label">Model Version</span>
+                    <div class="metric-card" style="position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-yellow), transparent); border-radius: 3px 3px 0 0;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            <span class="metric-label" style="margin-bottom: 0;">Model Version</span>
+                        </div>
                         <span class="metric-value">Mark V</span>
                     </div>
                 </div>
 
-                <div class="analysis-details">
-                    <h4>Forensic Analysis</h4>
-                    <p id="analysisText">Waiting for analysis...</p>
+                <div class="analysis-details"
+                    style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 24px; position: relative; overflow: hidden;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-yellow), transparent);">
+                    </div>
+                    <h4
+                        style="display: flex; align-items: center; gap: 10px; font-family: var(--font-display); margin-bottom: 12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Forensic Analysis
+                    </h4>
+                    <p id="analysisText" style="color: var(--text-secondary); line-height: 1.7;">Waiting for analysis...
+                    </p>
 
                     <button class="btn-primary" id="downloadReportBtn"
-                        style="margin-top: 20px; width: 100%; display: none;" onclick="generatePDFReport()">
+                        style="margin-top: 20px; width: 100%; display: none; position: relative; overflow: hidden;"
+                        onclick="generatePDFReport()">
                         📄 Download Forensic Report
                     </button>
                 </div>
@@ -334,23 +377,47 @@
                 <p class="section-subtitle">Overview of your detection history</p>
             </div>
             <div class="statistics-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📊</div>
+                <div class="stat-card"
+                    style="--accent-color: var(--accent-yellow); animation: fadeInUp 0.5s ease backwards; animation-delay: 0.1s;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-yellow), transparent); border-radius: 3px 3px 0 0;">
+                    </div>
+                    <div class="stat-icon"
+                        style="background: rgba(227, 245, 20, 0.1); border-radius: 14px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(227, 245, 20, 0.2);">
+                        📊</div>
                     <div class="stat-value" id="totalScans">0</div>
                     <div class="stat-label">Total Analyzed</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⚠️</div>
+                <div class="stat-card"
+                    style="--accent-color: #ff6b6b; animation: fadeInUp 0.5s ease backwards; animation-delay: 0.2s;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #ff6b6b, transparent); border-radius: 3px 3px 0 0;">
+                    </div>
+                    <div class="stat-icon"
+                        style="background: rgba(255, 107, 107, 0.1); border-radius: 14px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(255, 107, 107, 0.2);">
+                        ⚠️</div>
                     <div class="stat-value" id="fakeCount">0</div>
                     <div class="stat-label">Fake Detected</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✓</div>
+                <div class="stat-card"
+                    style="--accent-color: #10b981; animation: fadeInUp 0.5s ease backwards; animation-delay: 0.3s;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #10b981, transparent); border-radius: 3px 3px 0 0;">
+                    </div>
+                    <div class="stat-icon"
+                        style="background: rgba(16, 185, 129, 0.1); border-radius: 14px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        ✓</div>
                     <div class="stat-value" id="realCount">0</div>
                     <div class="stat-label">Real Images</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
+                <div class="stat-card"
+                    style="--accent-color: #3b82f6; animation: fadeInUp 0.5s ease backwards; animation-delay: 0.4s;">
+                    <div
+                        style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #3b82f6, transparent); border-radius: 3px 3px 0 0;">
+                    </div>
+                    <div class="stat-icon"
+                        style="background: rgba(59, 130, 246, 0.1); border-radius: 14px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        🎯</div>
                     <div class="stat-value" id="avgConfidence">0%</div>
                     <div class="stat-label">Avg Confidence</div>
                 </div>
@@ -368,6 +435,41 @@
             </div>
         </div>
     </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="position: relative; z-index: 1;">
+        <div class="container">
+            <div class="footer-content-minimal">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <img src="logo.svg" alt="DeepGuard Logo" class="logo-img">
+                        <span class="logo-text">Deep<span style="color: var(--accent-yellow);">Guard</span></span>
+                    </div>
+                </div>
+                <p class="footer-tagline-premium">Protecting digital truth with AI</p>
+                <div class="footer-links-premium">
+                    <a href="https://harshasnade-deepfake-detection.hf.space" target="_blank"
+                        class="footer-link-premium-item">
+                        <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face">
+                        <span>Models</span>
+                    </a>
+                    <a href="https://github.com/Harshvardhan-Asnade/Deepfake-Model" target="_blank"
+                        class="footer-link-premium-item">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+                <div class="footer-copyright-premium">
+                    <p>&copy; 2024 <span style="color: var(--accent-yellow); font-weight: 700;">DeepGuard</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-glow-enhanced"></div>
+        <div class="footer-glow"></div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

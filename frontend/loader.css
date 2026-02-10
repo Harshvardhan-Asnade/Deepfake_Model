@@ -5,8 +5,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #000000;
-    z-index: 2147483647;
+    background-color: #000000 !important;
+    z-index: 2147483647 !important;
     /* Max Z-Index */
     display: flex;
     flex-direction: column;
@@ -21,6 +21,7 @@
 
 #loader-wrapper.loaded {
     transform: translateY(-100%);
+    pointer-events: none;
 }
 
 /* Brutalist Content */

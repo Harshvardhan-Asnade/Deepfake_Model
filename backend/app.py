@@ -236,7 +236,7 @@ def serve_history_image(filename):
             
         # Parse Range Header
         byte1, byte2 = 0, None
-        m = re.search('bytes=(\d+)-(\d*)', range_header)
+        m = re.search(r'bytes=(\d+)-(\d*)', range_header)
         if m:
             g = m.groups()
             byte1 = int(g[0])
@@ -374,7 +374,8 @@ def predict():
             confidence=result['confidence'],
             fake_prob=result['fake_probability'],
             real_prob=result['real_probability'],
-            image_path=relative_path
+            image_path=relative_path,
+            session_id=request.headers.get('X-Session-ID')
         )
         
         # Clean up uploaded file
@@ -445,7 +446,8 @@ def predict_video():
             confidence=result['confidence'],
             fake_prob=result['avg_fake_prob'],
             real_prob=1 - result['avg_fake_prob'],
-            image_path=relative_path 
+            image_path=relative_path,
+            session_id=request.headers.get('X-Session-ID')
         )
         
         # Clean up
@@ -468,8 +470,8 @@ def predict_video():
 @app.route('/api/history', methods=['GET'])
 def get_history():
     """Get all past scans"""
-    history = database.get_history()
-    history = database.get_history()
+    session_id = request.headers.get('X-Session-ID')
+    history = database.get_history(session_id)
     return jsonify(history)
 
 @app.route('/api/history/<int:scan_id>', methods=['PATCH'])
@@ -486,14 +488,16 @@ def update_history_item(scan_id):
 @app.route('/api/history/<int:scan_id>', methods=['DELETE'])
 def delete_scan(scan_id):
     """Delete a specific scan"""
-    if database.delete_scan(scan_id):
+    session_id = request.headers.get('X-Session-ID')
+    if database.delete_scan(scan_id, session_id):
         return jsonify({'message': 'Scan deleted'})
     return jsonify({'error': 'Failed to delete scan'}), 500
 
 @app.route('/api/history', methods=['DELETE'])
 def clear_history():
     """Clear all history"""
-    if database.clear_history():
+    session_id = request.headers.get('X-Session-ID')
+    if database.clear_history(session_id):
         return jsonify({'message': 'History cleared'})
     return jsonify({'error': 'Failed to clear history'}), 500
 

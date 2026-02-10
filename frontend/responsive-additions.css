@@ -409,22 +409,17 @@ iframe {
     }
 }
 
-/* ==================== FLOATING BUTTONS POSITIONING ==================== */
-.floating-button,
-.btn-floating,
-[class*="floating"] {
-    position: fixed;
-    max-width: calc(100vw - 40px);
-}
-
+/* Floating buttons — only apply to actual UI floating buttons, not decorative */
 @media (max-width: 768px) {
 
     .floating-button,
     .btn-floating {
+        position: fixed;
         bottom: 20px !important;
         right: 20px !important;
         width: 56px;
         height: 56px;
+        max-width: calc(100vw - 40px);
     }
 }
 
@@ -606,34 +601,41 @@ iframe {
 
     .pipeline {
         flex-direction: column;
+        gap: 20px;
     }
 
+    /* RESPONSIVE: Hide pipeline arrows on mobile since steps stack */
     .pipeline-arrow {
-        transform: rotate(90deg);
+        display: none;
     }
 }
 
-/* ==================== TOUCH TARGET SIZES (WCAG AAA) ==================== */
-a,
-button,
-input,
-select,
-textarea,
-label,
-[role="button"],
-[onclick],
-[type="checkbox"],
-[type="radio"] {
-    min-height: 44px;
-    min-width: 44px;
-}
+/* ==================== TOUCH TARGET SIZES (WCAG AAA) — Mobile Only ==================== */
+@media (max-width: 768px) {
 
-/* Exception for inline text links */
-p a,
-li a,
-span a {
-    min-height: auto;
-    min-width: auto;
+    button,
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-hero-primary,
+    .btn-hero-secondary,
+    .btn-upload,
+    .btn-export,
+    .btn-toggle,
+    .btn-page,
+    .btn-batch,
+    .control-btn,
+    [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Checkboxes and radios need larger hit area */
+    [type="checkbox"],
+    [type="radio"] {
+        min-height: 24px;
+        min-width: 24px;
+    }
 }
 
 /* ==================== PREVENT iOS ZOOM ON INPUT FOCUS ==================== */
@@ -777,19 +779,15 @@ span a {
     }
 }
 
-/* ==================== ENSURE NO ELEMENT EXCEEDS VIEWPORT ==================== */
-* {
-    max-width: 100vw;
-}
-
-/* Allow specific elements to be full width */
-html,
-body,
-.mesh-background,
-#particles-js,
-#canvas-container,
-.noise-overlay {
-    max-width: none;
+/* ==================== OVERFLOW PREVENTION ==================== */
+/* Applied to specific layout containers only — not globally */
+.container,
+.analysis-grid,
+.features-grid,
+.tech-grid,
+.pipeline-grid {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* ==================== BATCH ACTIONS BAR MOBILE ==================== */
